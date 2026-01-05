@@ -8,11 +8,18 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Загружаем .env файл
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
+	}
+
 	cfg := config.LoadConfig()
 	ctx := context.Background()
 	pool, err := database.ConnectDB(ctx, cfg)
@@ -49,16 +56,36 @@ func main() {
 
 	handler := withCORS(r)
 
-	log.Println("FreeLib server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	// Получаем порт из переменной окружения
+	port := os.Getenv("SERVER_PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("FreeLib server starting on :%s", port)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 
 }
 
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		// Получаем CORS настройки из переменных окружения
+		allowedOrigins := os.Getenv("CORS_ALLOWED_ORIGINS")
+		if allowedOrigins == "" {
+			allowedOrigins = "*"
+		}
+		allowedMethods := os.Getenv("CORS_ALLOWED_METHODS")
+		if allowedMethods == "" {
+			allowedMethods = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		}
+		allowedHeaders := os.Getenv("CORS_ALLOWED_HEADERS")
+		if allowedHeaders == "" {
+			allowedHeaders = "Content-Type, Authorization"
+		}
+
+		w.Header().Set("Access-Control-Allow-Origin", allowedOrigins)
+		w.Header().Set("Access-Control-Allow-Methods", allowedMethods)
+		w.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 			return

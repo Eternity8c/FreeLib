@@ -1,0 +1,72 @@
+services:
+  frontend:
+    build:
+      context: ./Front
+      dockerfile: Dockerfile
+    container_name: free-lib-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - frontend_net
+
+  backend:
+    build:
+      context: ./Back 
+      dockerfile: docker/Dockerfile
+    container_name: free-lib-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSLMODE=disable
+      - SERVER_PORT=8080
+      - CORS_ALLOWED_ORIGINS=*
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend_net
+      - frontend_net
+
+  postgresql:
+    image: postgres:16-alpine3.23
+    container_name: free-lib-db
+    environment:
+       POSTGRES_USER: ${DB_USERNAME}
+       POSTGRES_PASSWORD: ${DB_PASSWORD}
+       POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Миграция бд, тут монтируется файл из папки /Back/migrations/ в /docker-entrypoint-initdb.d/ - там автоматически выполняются все скрипты из этой папки
+      - ./Back/migrations/000002_init.up.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USERNAME} -d ${DB_NAME}'"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+    - backend_net
+
+volumes:
+  postgres_data:
+networks:
+  backend_net:
+    driver: bridge
+    internal: true
+  frontend_net:
+    driver: bridge

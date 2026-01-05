@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of, throwError, firstValueFrom } from 'rxjs';
 import { map, catchError, timeout } from 'rxjs/operators';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 export interface Book {
   id: string | number;
@@ -133,7 +134,7 @@ export class BooksService {
 
   constructor(private http: HttpClient) {}
 
-  private baseUrl = 'http://localhost:8080/api';
+  private baseUrl = `${environment.apiUrl}/api`;
 
   searchGutendex(
     q: string,
