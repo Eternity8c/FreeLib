@@ -1,0 +1,50 @@
+:root {
+  --primary: #2c5530;
+  --secondary: #b68d40;
+  --accent: #d6ad60;
+  --background: #fefaf0;
+  --text: #2d2d2d;
+  --white: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Скрыть контролы выбора файлов глобально — UI теперь использует только URL обложки. */
+input[type='file'] {
+  display: none !important;
+}
+
+/* Если где-то осталось вспомогательное сообщение рядом с удалёнными контролами файлов,
+   скрыть типовые фразы по классам (шаблоны лучше почистить, но это безопасный запасной вариант). */
+.file-upload-hint,
+.upload-helper,
+.choose-file-label {
+  display: none !important;
+}
+
+/* Скрыть нативные кнопки выбора файла на случай, если input остался в скомпилированном коде */
+input[type='file']::file-selector-button,
+input[type='file']::-webkit-file-upload-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}

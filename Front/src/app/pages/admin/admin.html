@@ -1,0 +1,75 @@
+<div class="admin-page">
+  <h2>Панель администратора — книги</h2>
+
+  <div *ngIf="!isAdmin" class="no-access">У вас нет доступа к админ-панели.</div>
+
+  <form *ngIf="isAdmin" (ngSubmit)="editingId ? saveEdit() : add()" class="admin-form">
+    <label>Название</label>
+    <input type="text" [(ngModel)]="title" name="title" />
+
+    <label>Авторы (через запятую)</label>
+    <input type="text" [(ngModel)]="authors" name="authors" />
+
+    <label>Жанры (выберите несколько)</label>
+    <div class="genres-list" role="group" aria-label="Жанры">
+      <div class="genre-item" *ngFor="let g of availableGenres">
+        <label>
+          <input
+            type="checkbox"
+            name="genre_{{ g }}"
+            [ngModel]="selectedGenresForForm.includes(g)"
+            (ngModelChange)="onToggleGenreModel(g, $event)"
+          />
+          {{ g }}
+        </label>
+      </div>
+    </div>
+
+    <label>Ссылка на обложку</label>
+    <input type="text" [(ngModel)]="coverUrl" name="coverUrl" />
+
+    <label> <input type="checkbox" [(ngModel)]="hasText" name="hasText" /> Имеется текст </label>
+
+    <label *ngIf="hasText">Текст (необязательно, для образца)</label>
+    <textarea *ngIf="hasText" [(ngModel)]="sampleText" name="sampleText"></textarea>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="isSubmitting">
+        {{
+          editingId
+            ? isSubmitting
+              ? 'Сохранение...'
+              : 'Сохранить'
+            : isSubmitting
+            ? 'Добавление...'
+            : 'Добавить книгу'
+        }}
+      </button>
+      <button *ngIf="editingId" type="button" (click)="cancelEdit()" [disabled]="isSubmitting">
+        Отменить
+      </button>
+    </div>
+  </form>
+
+  <div aria-live="polite" class="sr-only" style="position: absolute; left: -9999px">
+    {{ message }}
+  </div>
+  <div *ngIf="message" class="message" role="status">{{ message }}</div>
+
+  <div *ngIf="isAdmin" class="existing-books">
+    <h3>Существующие книги</h3>
+    <div *ngIf="books && books.length; else noBooks">
+      <ul>
+        <li *ngFor="let b of books">
+          <strong>{{ b.title }}</strong>
+          <span class="saved-badge" *ngIf="b._justSaved">Сохранено</span>
+          — {{ (b.authors || []).join(', ') }}
+          <button type="button" (click)="startEdit(b)">Редактировать</button>
+        </li>
+      </ul>
+    </div>
+    <ng-template #noBooks>
+      <div>Книг не найдено.</div>
+    </ng-template>
+  </div>
+</div>

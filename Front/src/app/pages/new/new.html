@@ -1,0 +1,65 @@
+<div class="new-page">
+  <div class="library-header new-header">
+    <div class="header-inner" style="display: flex; align-items: center; gap: 12px">
+      <div
+        class="new-badge"
+        style="background: #e7f3ff; padding: 6px; border-radius: 8px; font-weight: 700"
+      >
+        NEW
+      </div>
+      <div>
+        <h1 style="margin: 0">Новинки</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-row">
+    <div class="status-badge" *ngIf="error">
+      <span class="badge-icon">⚠️</span>
+      <span class="badge-text">{{ error }}</span>
+    </div>
+  </div>
+
+  <div class="books-grid">
+    <ng-container *ngIf="loading">
+      <div class="book-card placeholder" *ngFor="let n of [1, 2, 3, 4, 5, 6]"></div>
+    </ng-container>
+
+    <div class="book-card" *ngFor="let book of books">
+      <div class="book-cover">
+        <img *ngIf="book.coverUrl; else placeholder" [src]="book.coverUrl" alt="cover" />
+        <ng-template #placeholder>
+          <div class="cover-placeholder">📚</div>
+        </ng-template>
+      </div>
+      <div class="book-info">
+        <h3 class="book-title">
+          {{ book.localizedTitle || book.title }}
+        </h3>
+        <div class="badges">
+          <span *ngIf="book.source === 'gutendex'" class="badge">RU</span>
+          <span *ngIf="book.readUrl" class="badge available">Текст</span>
+        </div>
+        <p class="book-author">{{ book.authors?.join(', ') || book.author || '' }}</p>
+        <div class="book-meta">
+          <span class="book-genre">{{ book.genre || '' }}</span>
+        </div>
+        <div class="book-actions">
+          <button class="read-btn" (click)="openReader(book)">Читать</button>
+          <button class="fav-btn" [class.active]="isFavorite(book)" (click)="addToFavorites(book)">
+            <span class="heart">♥</span>
+            <span class="label">{{ isFavorite(book) ? 'В избранном' : 'В избранное' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-book-reader
+    *ngIf="readerUrl || readerText"
+    [readUrl]="readerUrl"
+    [title]="readerTitle"
+    [text]="readerText"
+    (closed)="closeReader()"
+  ></app-book-reader>
+</div>

@@ -1,0 +1,46 @@
+<div class="app-container">
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <h1 class="logo"><a routerLink="/">FreeLib</a></h1>
+        <div class="header-actions">
+          <div class="auth-buttons">
+            <div *ngIf="!currentUser; else userMenu">
+              <button class="login-btn" (click)="openAuthModal('login')">Войти</button>
+              <button class="register-btn" (click)="openAuthModal('register')">Регистрация</button>
+            </div>
+
+            <ng-template #userMenu>
+              <div class="user-menu">
+                <span>Привет, {{ currentUser.username }}!</span>
+                <button *ngIf="currentUser?.isAdmin" class="admin-btn" routerLink="/admin">
+                  Админ
+                </button>
+                <button class="logout-btn" (click)="logout()">Выйти</button>
+              </div>
+            </ng-template>
+          </div>
+
+          <app-auth-modal *ngIf="showAuthModal" [mode]="authMode" (modalClosed)="closeAuthModal()">
+          </app-auth-modal>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <ul>
+          <li><a routerLink="/library">📖 Все книги</a></li>
+          <li><a routerLink="/new">🆕 Новинки</a></li>
+          <li><a routerLink="/favorites">⭐ Избранное</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
