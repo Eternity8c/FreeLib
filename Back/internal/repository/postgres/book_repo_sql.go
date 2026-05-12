@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"FreeLib/internal/models"
-	"FreeLib/internal/repository"
 	"context"
 	"fmt"
 	"time"
@@ -10,15 +9,17 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type bookRepository struct {
+type BookRepository struct {
 	pool *pgxpool.Pool
 }
 
-func NewBookRepository(pool *pgxpool.Pool) repository.BookRepository {
-	return &bookRepository{pool: pool}
+func NewBookRepository(pool *pgxpool.Pool) BookRepository {
+	return BookRepository{
+		pool: pool,
+	}
 }
 
-func (r *bookRepository) GetAll() ([]models.Book, error) {
+func (r *BookRepository) GetAll() ([]models.Book, error) {
 	query := `SELECT * FROM books;`
 	rows, err := r.pool.Query(context.Background(), query)
 	if err != nil {
@@ -50,7 +51,7 @@ func (r *bookRepository) GetAll() ([]models.Book, error) {
 	return books, nil
 }
 
-func (r *bookRepository) GetByID(id uint) (*models.Book, error) {
+func (r *BookRepository) GetByID(id uint) (*models.Book, error) {
 	query := `SELECT id, title, author, description, genre, content, cover_url, created_at
 	 FROM books WHERE id = $1;`
 	var book models.Book
@@ -72,7 +73,7 @@ func (r *bookRepository) GetByID(id uint) (*models.Book, error) {
 	return &book, nil
 }
 
-func (r *bookRepository) Create(book *models.Book) error {
+func (r *BookRepository) Create(book *models.Book) error {
 	ctx := context.Background()
 	var createdAt time.Time
 	err := r.pool.QueryRow(ctx, `
@@ -88,7 +89,7 @@ func (r *bookRepository) Create(book *models.Book) error {
 	return nil
 }
 
-func (r *bookRepository) Delete(id uint) error {
+func (r *BookRepository) Delete(id uint) error {
 	query := `DELETE FROM books WHERE id = $1`
 	result, err := r.pool.Exec(context.Background(), query, id)
 	if err != nil {
@@ -104,7 +105,7 @@ func (r *bookRepository) Delete(id uint) error {
 	return nil
 }
 
-func (r *bookRepository) Update(book *models.Book) error {
+func (r *BookRepository) Update(book *models.Book) error {
 	query := `UPDATE books
 	SET title = $1, author = $2, description = $3, genre = $4, content = $5, cover_url = $6
 	WHERE id = $7`
@@ -130,7 +131,7 @@ func (r *bookRepository) Update(book *models.Book) error {
 	return nil
 }
 
-func (r *bookRepository) AddFavorite(userID uint, bookID uint) error {
+func (r *BookRepository) AddFavorite(userID uint, bookID uint) error {
 	query := `INSERT INTO favorite_books (user_id, book_id)
 	VALUES ($1, $2)`
 
@@ -146,7 +147,7 @@ func (r *bookRepository) AddFavorite(userID uint, bookID uint) error {
 	return nil
 }
 
-func (r *bookRepository) DeleteFavorite(userID uint, bookID uint) error {
+func (r *BookRepository) DeleteFavorite(userID uint, bookID uint) error {
 	query := `DELETE FROM favorite_books WHERE user_id = $1 AND book_id = $2`
 	_, err := r.pool.Exec(context.Background(), query, userID, bookID)
 
@@ -157,7 +158,7 @@ func (r *bookRepository) DeleteFavorite(userID uint, bookID uint) error {
 	return nil
 }
 
-func (r *bookRepository) GetAllFavorite(userID uint) ([]models.Book, error) {
+func (r *BookRepository) GetAllFavorite(userID uint) ([]models.Book, error) {
 	query := `SELECT book_id FROM favorite_books WHERE user_id = $1`
 
 	rows, err := r.pool.Query(context.Background(), query, userID)

@@ -2,22 +2,23 @@ package postgres
 
 import (
 	"FreeLib/internal/models"
-	"FreeLib/internal/repository"
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type userRepository struct {
+type UserRepository struct {
 	pool *pgxpool.Pool
 }
 
-func NewUserRepository(pool *pgxpool.Pool) repository.UserRepository {
-	return &userRepository{pool: pool}
+func NewUserRepository(pool *pgxpool.Pool) UserRepository {
+	return UserRepository{
+		pool: pool,
+	}
 }
 
-func (r *userRepository) CreateUser(user *models.User) error {
+func (r *UserRepository) CreateUser(user *models.User) error {
 	query := `INSERT INTO users(
 	username,
 	email,
@@ -25,10 +26,10 @@ func (r *userRepository) CreateUser(user *models.User) error {
 	VALUES($1, $2, $3)
 	RETURNING id`
 
-	err := r.pool.QueryRow(context.Background(),query, 
-	user.Username,
-	user.Email,
-	user.PasswordHash).Scan(&user.ID)
+	err := r.pool.QueryRow(context.Background(), query,
+		user.Username,
+		user.Email,
+		user.PasswordHash).Scan(&user.ID)
 
 	if err != nil {
 		return err
@@ -37,7 +38,7 @@ func (r *userRepository) CreateUser(user *models.User) error {
 	return nil
 }
 
-func (r *userRepository) AuntificationUser(lr *models.LoginRequest) (*models.User, error) {
+func (r *UserRepository) AuntificationUser(lr *models.LoginRequest) (*models.User, error) {
 	query := `SELECT id, username, email, is_admin, password_hash FROM users
 	WHERE email = $1`
 	var user models.User

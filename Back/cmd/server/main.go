@@ -1,9 +1,9 @@
 package main
 
 import (
+	"FreeLib/internal/config"
 	"FreeLib/internal/handlers"
 	"FreeLib/internal/repository/postgres"
-	"FreeLib/pkg/config"
 	"FreeLib/pkg/database"
 	"context"
 	"log"
@@ -13,9 +13,9 @@ import (
 )
 
 func main() {
-	cfg := config.LoadConfig()
+	cfg := config.NewConfig()
 	ctx := context.Background()
-	pool, err := database.ConnectDB(ctx, cfg)
+	pool, err := database.ConnectDB(ctx, cfg.DBAddr)
 	if err != nil {
 		log.Fatal(err)
 	}

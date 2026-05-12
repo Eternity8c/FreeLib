@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"FreeLib/internal/models"
-	"FreeLib/internal/repository"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -11,10 +10,15 @@ import (
 )
 
 type UserHandler struct {
-	repo repository.UserRepository
+	repo UserRepository
 }
 
-func NewUserHandler(repo repository.UserRepository) *UserHandler {
+type UserRepository interface {
+	CreateUser(user *models.User) error
+	AuntificationUser(lr *models.LoginRequest) (*models.User, error)
+}
+
+func NewUserHandler(repo UserRepository) *UserHandler {
 	return &UserHandler{
 		repo: repo,
 	}

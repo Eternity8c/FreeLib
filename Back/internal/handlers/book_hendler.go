@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"FreeLib/internal/models"
-	"FreeLib/internal/repository"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -13,11 +12,22 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type BookHandler struct {
-	repo repository.BookRepository
+type BookRepository interface {
+	GetAll() ([]models.Book, error)
+	GetByID(id uint) (*models.Book, error)
+	Create(book *models.Book) error
+	Delete(id uint) error
+	Update(book *models.Book) error
+	AddFavorite(userID uint, bookID uint) error
+	DeleteFavorite(userID uint, bookID uint) error
+	GetAllFavorite(userID uint) ([]models.Book, error)
 }
 
-func NewBookHandler(repo repository.BookRepository) *BookHandler {
+type BookHandler struct {
+	repo BookRepository
+}
+
+func NewBookHandler(repo BookRepository) *BookHandler {
 	return &BookHandler{
 		repo: repo,
 	}
