@@ -2,8 +2,11 @@ package main
 
 import (
 	core_logger "FreeLib/internal/core/logger"
+	core_postgres_pool "FreeLib/internal/core/repository/postgres/pool"
 	core_http_middleware "FreeLib/internal/core/transport/http/middleware"
 	core_http_server "FreeLib/internal/core/transport/http/server"
+	users_postgres_repository "FreeLib/internal/features/users/repository/postrgres"
+	users_service "FreeLib/internal/features/users/service"
 	users_transport_http "FreeLib/internal/features/users/transport/http"
 	"context"
 	"fmt"
@@ -29,13 +32,27 @@ func main() {
 	}
 	defer logger.Close()
 
-	logger.Debug("Starting FreeLib application")
+	logger.Debug("initializing postgres connection pool")
+	pool, err := core_postgres_pool.NewConnectionPool(
+		ctx,
+		core_postgres_pool.NewConfigMust(),
+	)
 
-	usersTransportHTTP := users_transport_http.NewUserHTTPHandler(nil)
-	usersRoutes := usersTransportHTTP.Routes()
+	if err != nil {
+		logger.Fatal(
+			"failed to init postges connection pool",
+			zap.Error(err),
+		)
+	}
+	defer pool.Close()
 
-	router := core_http_server.NewRouter()
-	router.RegisterRoutes(usersRoutes...)
+	logger.Debug("initializing feature", zap.String("feature", "users"))
+
+	usersRepository := users_postgres_repository.NewUsersRepository(pool)
+	userService := users_service.NewUsersService(usersRepository)
+	usersTransportHTTP := users_transport_http.NewUserHTTPHandler(userService)
+
+	logger.Debug("initializing HTTP server")
 
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -45,30 +62,14 @@ func main() {
 		core_http_middleware.Panic(),
 		core_http_middleware.Trace(),
 	)
+
+	router := core_http_server.NewRouter()
+	router.RegisterRoutes(usersTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRoutes(router)
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))
 	}
-	// cfg := config.NewConfig()
-	// ctx := context.Background()
-	// pool, err := database.ConnectDB(ctx, cfg.DBAddr)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer pool.Close()
-	// log.Println("Connect db")
-
-	// bookRepo := postgres.NewBookRepository(pool)
-
-	// bookHandler := handlers.NewBookHandler(bookRepo)
-
-	// userRepo := postgres.NewUserRepository(pool)
-
-	// userHandler := handlers.NewUserHandler(userRepo)
-
-	// r := mux.NewRouter()
-
 	// //Books Handlers
 	// r.HandleFunc("/api/health", bookHandler.HealthHandler).Methods("GET")
 	// r.HandleFunc("/api/books", bookHandler.GetBooksHandler).Methods("GET")
@@ -83,12 +84,6 @@ func main() {
 	// //User Handlers
 	// r.HandleFunc("/api/register", userHandler.RegisterHandler).Methods("POST")
 	// r.HandleFunc("/api/login", userHandler.AuntificationHandler).Methods("POST")
-
-	// handler := withCORS(r)
-
-	// log.Println("FreeLib server starting on :8080")
-	// log.Fatal(http.ListenAndServe(":8080", handler))
-
 }
 
 func withCORS(next http.Handler) http.Handler {

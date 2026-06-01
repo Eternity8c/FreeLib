@@ -1,7 +1,9 @@
 package users_transport_http
 
 import (
+	"FreeLib/internal/core/domain"
 	core_http_server "FreeLib/internal/core/transport/http/server"
+	"context"
 	"net/http"
 )
 
@@ -10,7 +12,7 @@ type UsersHTTPHandler struct {
 }
 
 type UserServices interface {
-	// CreateUser(user *models.User) error
+	CreateUser(ctx context.Context, email string, password string) (domain.User, error)
 	// AuntificationUser(lr *models.LoginRequest) (*models.User, error)
 }
 

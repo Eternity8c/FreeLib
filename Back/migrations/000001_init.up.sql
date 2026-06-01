@@ -23,7 +23,7 @@ CREATE TABLE freelib.books (
 CREATE TABLE freelib.users (
     user_id SERIAL PRIMARY KEY,
     email VARCHAR(50),
-    pass_hash VARCHAR(50),
+    pass_hash VARCHAR(150),
     is_admin BOOLEAN DEFAULT FALSE
 );
 

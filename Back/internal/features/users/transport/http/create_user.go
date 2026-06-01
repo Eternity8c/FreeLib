@@ -1,34 +1,49 @@
 package users_transport_http
 
 import (
+	"FreeLib/internal/core/domain"
 	core_logger "FreeLib/internal/core/logger"
-	"encoding/json"
-	"fmt"
+	core_http_request "FreeLib/internal/core/transport/http/request"
+	core_http_responce "FreeLib/internal/core/transport/http/responce"
 	"net/http"
 )
 
 type CreateUserRequest struct {
-	UserName string `json:"user_name,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Password string `json:"password,omitempty"`
+	Email    string `json:"email" validate:"required,contains=@"`
+	Password string `json:"password" validate:"required"`
 }
 
 type CreateUserResponce struct {
-	ID       int    `json:"id,omitempty"`
-	UserName string `json:"user_name,omitempty"`
-	Email    string `json:"email,omitempty"`
+	ID    int    `json:"id"`
+	Email string `json:"email"`
 }
 
 func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
 
 	log.Debug("invoke CreateUser handler")
 
 	var request CreateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		fmt.Println("Error")
+	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+		responceHandler.ErrorResponce(err, "failed to decode and validate HTTP request")
+		return
 	}
 
-	rw.WriteHeader(http.StatusOK)
+	userDomain, err := h.userServices.CreateUser(ctx, request.Email, request.Password)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed to create user")
+		return
+	}
+
+	responce := dtoFromDomain(userDomain)
+	responceHandler.JSONResponce(responce, http.StatusCreated)
+}
+
+func dtoFromDomain(user domain.User) CreateUserResponce {
+	return CreateUserResponce{
+		ID:    user.ID,
+		Email: user.Email,
+	}
 }
