@@ -13,7 +13,7 @@ type UsersHTTPHandler struct {
 
 type UserServices interface {
 	CreateUser(ctx context.Context, email string, password string) (domain.User, error)
-	// AuntificationUser(lr *models.LoginRequest) (*models.User, error)
+	AuthorizationUser(ctx context.Context, email string, password string) (string, error)
 }
 
 func NewUserHTTPHandler(userServices UserServices) *UsersHTTPHandler {
@@ -26,8 +26,13 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/users",
+			Path:    "/register",
 			Handler: h.CreateUser,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/login",
+			Handler: h.AuthorizationUser,
 		},
 	}
 }
