@@ -1,57 +1,89 @@
 package main
 
 import (
-	"FreeLib/internal/handlers"
-	"FreeLib/internal/repository/postgres"
-	"FreeLib/pkg/config"
-	"FreeLib/pkg/database"
+	core_logger "FreeLib/internal/core/logger"
+	core_postgres_pool "FreeLib/internal/core/repository/postgres/pool"
+	core_http_middleware "FreeLib/internal/core/transport/http/middleware"
+	core_http_server "FreeLib/internal/core/transport/http/server"
+	users_postgres_repository "FreeLib/internal/features/users/repository/postrgres"
+	users_service "FreeLib/internal/features/users/service"
+	users_transport_http "FreeLib/internal/features/users/transport/http"
 	"context"
-	"log"
+	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 func main() {
-	cfg := config.LoadConfig()
-	ctx := context.Background()
-	pool, err := database.ConnectDB(ctx, cfg)
+	ctx, cancel := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT, syscall.SIGTERM,
+	)
+	defer cancel()
+
+	logger, err := core_logger.NewLogger(core_logger.NewConfigMust())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("failed to init application logger:", err)
+		os.Exit(1)
+	}
+	defer logger.Close()
+
+	logger.Debug("initializing postgres connection pool")
+	pool, err := core_postgres_pool.NewConnectionPool(
+		ctx,
+		core_postgres_pool.NewConfigMust(),
+	)
+
+	if err != nil {
+		logger.Fatal(
+			"failed to init postges connection pool",
+			zap.Error(err),
+		)
 	}
 	defer pool.Close()
-	log.Println("Connect db")
 
-	bookRepo := postgres.NewBookRepository(pool)
+	logger.Debug("initializing feature", zap.String("feature", "users"))
 
-	bookHandler := handlers.NewBookHandler(bookRepo)
+	usersRepository := users_postgres_repository.NewUsersRepository(pool)
+	userService := users_service.NewUsersService(usersRepository)
+	usersTransportHTTP := users_transport_http.NewUserHTTPHandler(userService)
 
-	userRepo := postgres.NewUserRepository(pool)
+	logger.Debug("initializing HTTP server")
 
-	userHandler := handlers.NewUserHandler(userRepo)
+	httpServer := core_http_server.NewHTTPServer(
+		core_http_server.NewConfigMust(),
+		logger,
+		core_http_middleware.RequestID(),
+		core_http_middleware.Logger(logger),
+		core_http_middleware.Panic(),
+		core_http_middleware.Trace(),
+	)
 
-	r := mux.NewRouter()
+	router := core_http_server.NewRouter()
+	router.RegisterRoutes(usersTransportHTTP.Routes()...)
+	httpServer.RegisterAPIRoutes(router)
 
-	//Books Handlers
-	r.HandleFunc("/api/health", bookHandler.HealthHandler).Methods("GET")
-	r.HandleFunc("/api/books", bookHandler.GetBooksHandler).Methods("GET")
-	r.HandleFunc("/api/book", bookHandler.GetByIDHandler).Methods("GET")
-	r.HandleFunc("/api/create", bookHandler.CreateHandler).Methods("POST")
-	r.HandleFunc("/api/book", bookHandler.DeleteHandler).Methods("DELETE")
-	r.HandleFunc("/api/book/{id}", bookHandler.UpdateBookHandler).Methods("PATCH")
-	r.HandleFunc("/api/users/{id}/favorites", bookHandler.AddFavoriteHandler).Methods("POST")
-	r.HandleFunc("/api/users/{user_id}/favorites/book/{book_id}", bookHandler.DeleteFavoriteHandler).Methods("DELETE")
-	r.HandleFunc("/api/users/{user_id}/favorites", bookHandler.GetAllFavotiteHandler).Methods("GET")
+	if err := httpServer.Run(ctx); err != nil {
+		logger.Error("HTTP server run error", zap.Error(err))
+	}
+	// //Books Handlers
+	// r.HandleFunc("/api/health", bookHandler.HealthHandler).Methods("GET")
+	// r.HandleFunc("/api/books", bookHandler.GetBooksHandler).Methods("GET")
+	// r.HandleFunc("/api/book", bookHandler.GetByIDHandler).Methods("GET")
+	// r.HandleFunc("/api/create", bookHandler.CreateHandler).Methods("POST")
+	// r.HandleFunc("/api/book", bookHandler.DeleteHandler).Methods("DELETE")
+	// r.HandleFunc("/api/book/{id}", bookHandler.UpdateBookHandler).Methods("PATCH")
+	// r.HandleFunc("/api/users/{id}/favorites", bookHandler.AddFavoriteHandler).Methods("POST")
+	// r.HandleFunc("/api/users/{user_id}/favorites/book/{book_id}", bookHandler.DeleteFavoriteHandler).Methods("DELETE")
+	// r.HandleFunc("/api/users/{user_id}/favorites", bookHandler.GetAllFavotiteHandler).Methods("GET")
 
-	//User Handlers
-	r.HandleFunc("/api/register", userHandler.RegisterHandler).Methods("POST")
-	r.HandleFunc("/api/login", userHandler.AuntificationHandler).Methods("POST")
-
-	handler := withCORS(r)
-
-	log.Println("FreeLib server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
-
+	// //User Handlers
+	// r.HandleFunc("/api/register", userHandler.RegisterHandler).Methods("POST")
+	// r.HandleFunc("/api/login", userHandler.AuntificationHandler).Methods("POST")
 }
 
 func withCORS(next http.Handler) http.Handler {
