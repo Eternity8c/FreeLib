@@ -17,6 +17,7 @@ type BookServices interface {
 	GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetNewBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetBook(ctx context.Context, id int) (domain.Book, error)
+	FavoriteBook(ctx context.Context, userID int, bookID int) (int, domain.Book, error)
 }
 
 func NewBookHTTPHandler(bookServices BookServices) *BooksHTTPHandler {
@@ -46,6 +47,13 @@ func (h *BooksHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodGet,
 			Path:    "/book",
 			Handler: h.GetBook,
+		},
+		{
+			Method: http.MethodPost,
+			Path: "/book",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				core_http_middleware.Authorization()(http.HandlerFunc(h.FavoriteBook)).ServeHTTP(w, r)
+			},
 		},
 	}
 }

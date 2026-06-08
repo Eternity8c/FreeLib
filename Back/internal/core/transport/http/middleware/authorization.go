@@ -40,10 +40,8 @@ func AdminOnly(next http.HandlerFunc) http.HandlerFunc {
 		ctx := r.Context()
 		log := core_logger.FromContext(ctx)
 		responceHandler := core_http_responce.NewHTTPResponceHandler(log, w)
-		// Попробуем получить claims из контекста (Authorization middleware)
 		claims, ok := core_jwt.ClaimsFromContext(ctx)
 		if !ok {
-			// Если контекста нет, попробуем распарсить токен напрямую
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
 				responceHandler.ErrorResponce(core_errors.ErrUnauthorized, "user unauthorized")
