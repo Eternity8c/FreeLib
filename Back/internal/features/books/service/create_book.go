@@ -11,7 +11,7 @@ func (s *BookService) CreateBook(ctx context.Context, book domain.Book) (domain.
 		return domain.Book{}, fmt.Errorf("validate book domain: %w", err)
 	}
 
-	domainBook, err := s.bookrepository.CreateBook(ctx, book)
+	domainBook, err := s.bookRepository.CreateBook(ctx, book)
 	if err != nil {
 		return domain.Book{}, fmt.Errorf("create book: %w", err)
 	}

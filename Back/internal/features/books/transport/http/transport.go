@@ -14,6 +14,7 @@ type BooksHTTPHandler struct {
 
 type BookServices interface {
 	CreateBook(ctx context.Context, book domain.Book) (domain.Book, error)
+	GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 }
 
 func NewBookHTTPHandler(bookServices BookServices) *BooksHTTPHandler {
@@ -26,8 +27,13 @@ func (h *BooksHTTPHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/book",
+			Path:    "/books",
 			Handler: core_http_middleware.AdminOnly(h.CreateBook),
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/books",
+			Handler: h.GetBooks,
 		},
 	}
 }

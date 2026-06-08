@@ -14,12 +14,7 @@ type CreateBookRequest struct {
 	Genre  string `json:"genre"`
 }
 
-type CreateBookResponce struct {
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Author string `json:"author"`
-	Genre  string `json:"genre"`
-}
+type CreateBookResponce BookDTOResponce
 
 func (h *BooksHTTPHandler) CreateBook(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -41,19 +36,10 @@ func (h *BooksHTTPHandler) CreateBook(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responce := dtoFromDomain(bookDomain)
+	responce := CreateBookResponce(bookDTOFromDomain(bookDomain))
 	responceHandler.JSONResponce(responce, http.StatusCreated)
 }
 
 func domainFromDto(request CreateBookRequest) domain.Book {
 	return domain.NewBookUninitialized(request.Title, request.Author, request.Genre)
-}
-
-func dtoFromDomain(book domain.Book) CreateBookResponce {
-	return CreateBookResponce{
-		ID:     book.ID,
-		Title:  book.Title,
-		Genre:  book.Genre,
-		Author: book.Author,
-	}
 }

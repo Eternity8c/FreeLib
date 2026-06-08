@@ -6,15 +6,16 @@ import (
 )
 
 type BookService struct {
-	bookrepository BookRepository
+	bookRepository BookRepository
 }
 
 type BookRepository interface {
 	CreateBook(ctx context.Context, book domain.Book) (domain.Book, error)
+	GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 }
 
 func NewBookService(bookRepository BookRepository) *BookService {
 	return &BookService{
-		bookrepository: bookRepository,
+		bookRepository: bookRepository,
 	}
 }

@@ -26,7 +26,6 @@ env-cleanup:
 run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
 	export POSTGRES_HOST=localhost && \
-	go mod tidy && \
 	go run cmd/server/main.go
 
 # Запуск тестов
