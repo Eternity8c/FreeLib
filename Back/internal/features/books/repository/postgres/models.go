@@ -27,3 +27,13 @@ func bookDomainsFromModels(books []BookModel) []domain.Book {
 
 	return bookDomains
 }
+
+func bookDomainFromModel(book BookModel) domain.Book {
+	return domain.NewBook(
+		book.ID,
+		book.Title,
+		book.Author,
+		book.Genre,
+		book.CreatedAt,
+	)
+}

@@ -13,6 +13,7 @@ type BookRepository interface {
 	CreateBook(ctx context.Context, book domain.Book) (domain.Book, error)
 	GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetNewBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
+	GetBook(ctx context.Context, id int) (domain.Book, error)
 }
 
 func NewBookService(bookRepository BookRepository) *BookService {

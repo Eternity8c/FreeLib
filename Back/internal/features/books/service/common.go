@@ -22,3 +22,11 @@ func validateLimitOffset(limit *int, offset *int) error {
 
 	return nil
 }
+
+func validateID(id int) error {
+	if id <= 0 {
+		return fmt.Errorf("ID must be non-negstive: %w", core_errors.ErrInvalidArgumment)
+	}
+
+	return nil
+}
