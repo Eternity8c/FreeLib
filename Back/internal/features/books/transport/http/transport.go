@@ -15,6 +15,7 @@ type BooksHTTPHandler struct {
 type BookServices interface {
 	CreateBook(ctx context.Context, book domain.Book) (domain.Book, error)
 	GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
+	GetNewBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 }
 
 func NewBookHTTPHandler(bookServices BookServices) *BooksHTTPHandler {
@@ -34,6 +35,11 @@ func (h *BooksHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodGet,
 			Path:    "/books",
 			Handler: h.GetBooks,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/books/new",
+			Handler: h.GetNewBooks,
 		},
 	}
 }

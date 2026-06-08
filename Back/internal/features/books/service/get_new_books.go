@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-func (s *BookService) GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error) {
+func (s *BookService) GetNewBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error) {
 	if err := validateLimitOffset(limit, offset); err != nil {
 		return nil, fmt.Errorf("validate limit offset: %w", err)
 	}
 
-	books, err := s.bookRepository.GetBooks(ctx, limit, offset)
+	books, err := s.bookRepository.GetNewBooks(ctx, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("get books from repository: %w", err)
+		return nil, fmt.Errorf("get new books from repository")
 	}
 
 	return books, nil

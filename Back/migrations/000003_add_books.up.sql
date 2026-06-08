@@ -4,13 +4,13 @@ VALUES
         'Анна Каренина', 
         (SELECT author_id FROM freelib.author WHERE name_author = 'Лев Толстой'),
         (SELECT genre_id FROM freelib.genre WHERE name_genre = 'Классика'),
-        NOW()
+        '2026-05-08 09:24:49.303 +0300'
     ),
     (
         'Идиот', 
         (SELECT author_id FROM freelib.author WHERE name_author = 'Федор Достоевский'),
         (SELECT genre_id FROM freelib.genre WHERE name_genre = 'Классика'),
-        NOW()
+        '2026-05-08 09:24:49.303 +0300'
     ),
     (
         'Палата №6', 

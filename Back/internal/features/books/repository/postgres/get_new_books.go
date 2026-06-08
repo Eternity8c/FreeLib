@@ -6,12 +6,12 @@ import (
 	"fmt"
 )
 
-func (r *BookRepositry) GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error) {
+func (r *BookRepositry) GetNewBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	query := `
-	SELECT 
+		SELECT 
         b.book_id, 
         b.title, 
         a.name_author, 
@@ -20,6 +20,7 @@ func (r *BookRepositry) GetBooks(ctx context.Context, limit *int, offset *int) (
     FROM freelib.books b
     JOIN freelib.author a ON b.author_id = a.author_id
     JOIN freelib.genre g ON b.genre_id = g.genre_id
+	WHERE b.created_at >= NOW() - INTERVAL '7 days'
 	LIMIT $1
 	OFFSET $2;
 	`
