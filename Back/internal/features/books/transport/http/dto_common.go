@@ -52,6 +52,8 @@ type GetFavoriteBooksRecponce []BookDTOResponce
 
 type GetNewBooksResponce []BookDTOResponce
 
+type GetBooksByGenre []BookDTOResponce
+
 func domainFromDto(request CreateBookRequest) domain.Book {
 	return domain.NewBookUninitialized(request.Title, request.Author, request.Genre)
 }

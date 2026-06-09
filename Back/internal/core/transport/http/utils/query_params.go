@@ -23,3 +23,9 @@ func GetIntQueryParam(r *http.Request, key string) (*int, error) {
 
 	return &val, nil
 }
+
+func GetStringQueryParam(r *http.Request, key string) string {
+	param := r.URL.Query().Get(key)
+
+	return param
+}

@@ -260,3 +260,28 @@ func (r *BookRepositry) FavoriteBook(ctx context.Context, userID int, bookID int
 	}
 	return returnedUserID, bookDomain, nil
 }
+
+func (r *BookRepositry) GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
+	defer cancel()
+
+	query := `
+	SELECT 
+		b.book_id, 
+		b.title, 
+		a.name_author, 
+		g.name_genre, 
+		b.created_at
+	FROM freelib.books b
+	JOIN freelib.author a ON b.author_id = a.author_id
+	JOIN freelib.genre g ON b.genre_id = g.genre_id
+	WHERE name_genre = $1
+	`
+
+	bookDomains, err := r.queryBooks(ctx, query, genre)
+	if err != nil {
+		return nil, fmt.Errorf("get query books: %w", err)
+	}
+
+	return bookDomains, nil
+}

@@ -18,6 +18,7 @@ type BookRepository interface {
 	GetBook(ctx context.Context, id int) (domain.Book, error)
 	FavoriteBook(ctx context.Context, userID int, bookID int) (int, domain.Book, error)
 	GetFavoriteBooks(ctx context.Context, userID int) ([]domain.Book, error)
+	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
 }
 
 func NewBookService(bookRepository BookRepository) *BookService {
@@ -97,8 +98,22 @@ func (s *BookService) GetNewBooks(ctx context.Context, limit *int, offset *int) 
 
 	books, err := s.bookRepository.GetNewBooks(ctx, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("get new books from repository")
+		return nil, fmt.Errorf("get new books from repository: %w", err)
 	}
 
 	return books, nil
+}
+
+func (s *BookService) GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error) {
+	genreLenght := len([]rune(genre))
+	if genreLenght < 3 {
+		return nil, fmt.Errorf("genre len: %d: %w", genreLenght, core_errors.ErrInvalidArgumment)
+	}
+
+	bookDomains, err := s.bookRepository.GetBooksByGenre(ctx, genre)
+	if err != nil {
+		return nil, fmt.Errorf("get book by genre from repository: %w", err)
+	}
+
+	return bookDomains, nil
 }

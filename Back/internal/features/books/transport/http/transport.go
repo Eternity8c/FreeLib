@@ -22,6 +22,7 @@ type BookServices interface {
 	GetBook(ctx context.Context, id int) (domain.Book, error)
 	FavoriteBook(ctx context.Context, userID int, bookID int) (int, domain.Book, error)
 	GetFavoriteBooks(ctx context.Context, userID int) ([]domain.Book, error)
+	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
 }
 
 func NewBookHTTPHandler(bookServices BookServices) *BooksHTTPHandler {
@@ -150,7 +151,6 @@ func (h *BooksHTTPHandler) GetBook(rw http.ResponseWriter, r *http.Request) {
 func (h *BooksHTTPHandler) GetBooks(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
-
 	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
 
 	log.Debug("invoke GetBooks handler")
@@ -161,13 +161,22 @@ func (h *BooksHTTPHandler) GetBooks(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	booksDomain, err := h.bookServices.GetBooks(ctx, limit, offset)
-	if err != nil {
-		responceHandler.ErrorResponce(err, "failed to get books")
-		return
+	var bookDomains []domain.Book
+	genre := getGenreQueryParam(r)
+	if genre == "" {
+		bookDomains, err = h.bookServices.GetBooks(ctx, limit, offset)
+		if err != nil {
+			responceHandler.ErrorResponce(err, "failed to get books")
+			return
+		}
+	} else {
+		bookDomains, err = h.bookServices.GetBooksByGenre(ctx, genre)
+		if err != nil {
+			responceHandler.ErrorResponce(err, "failed get books by genre")
+		}
 	}
 
-	responce := GetBooksResponce(booksDTOFromDomains(booksDomain))
+	responce := GetBooksResponce(booksDTOFromDomains(bookDomains))
 	responceHandler.JSONResponce(responce, http.StatusOK)
 }
 

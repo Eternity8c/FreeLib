@@ -39,3 +39,8 @@ func idFromJWTToken(ctx context.Context) (int, error) {
 	}
 	return claims.ID, nil
 }
+
+func getGenreQueryParam(r *http.Request) string {
+	genre := core_http_utils.GetStringQueryParam(r, "genre")
+	return genre
+}
