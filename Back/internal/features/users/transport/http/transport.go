@@ -2,6 +2,9 @@ package users_transport_http
 
 import (
 	"FreeLib/internal/core/domain"
+	core_logger "FreeLib/internal/core/logger"
+	core_http_request "FreeLib/internal/core/transport/http/request"
+	core_http_responce "FreeLib/internal/core/transport/http/responce"
 	core_http_server "FreeLib/internal/core/transport/http/server"
 	"context"
 	"net/http"
@@ -35,4 +38,49 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 			Handler: h.AuthorizationUser,
 		},
 	}
+}
+
+func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
+
+	log.Debug("invoke CreateUser handler")
+
+	var request CreateUserRequest
+	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+		responceHandler.ErrorResponce(err, "failed to decode and validate HTTP request")
+		return
+	}
+
+	userDomain, err := h.userServices.CreateUser(ctx, request.Email, request.Password)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed to create user")
+		return
+	}
+
+	responce := dtoFromDomain(userDomain)
+	responceHandler.JSONResponce(responce, http.StatusCreated)
+}
+
+func (h *UsersHTTPHandler) AuthorizationUser(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
+
+	log.Debug("invoke AuthorizationUser handler")
+
+	var request AuthorizationUserRequest
+	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+		responceHandler.ErrorResponce(err, "failde decode and validate HTTP request")
+		return
+	}
+
+	jwtToken, err := h.userServices.AuthorizationUser(ctx, request.Email, request.Password)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed authorization user")
+		return
+	}
+
+	responceHandler.JSONResponce(jwtToken, http.StatusOK)
 }

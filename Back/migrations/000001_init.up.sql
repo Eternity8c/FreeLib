@@ -38,3 +38,5 @@ CREATE TABLE freelib.favorite_book (
     FOREIGN KEY (book_id) REFERENCES freelib.books (book_id)
 );
 
+CREATE UNIQUE INDEX idx_unique_user_book ON freelib.favorite_book (user_id, book_id);
+

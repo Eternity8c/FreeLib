@@ -26,3 +26,32 @@ func booksDTOFromDomains(books []domain.Book) []BookDTOResponce {
 
 	return bookDTO
 }
+
+type CreateBookRequest struct {
+	Title  string `json:"title"`
+	Author string `json:"author"`
+	Genre  string `json:"genre"`
+}
+
+type CreateBookResponce BookDTOResponce
+
+type FavoriteBookRequest struct {
+	BookID int `json:"book_id"`
+}
+
+type FavoriteBookResponce struct {
+	UserID int             `json:"user_id"`
+	Book   BookDTOResponce `json:"book"`
+}
+
+type GetBookResponce BookDTOResponce
+
+type GetBooksResponce []BookDTOResponce
+
+type GetFavoriteBooksRecponce []BookDTOResponce
+
+type GetNewBooksResponce []BookDTOResponce
+
+func domainFromDto(request CreateBookRequest) domain.Book {
+	return domain.NewBookUninitialized(request.Title, request.Author, request.Genre)
+}

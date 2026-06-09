@@ -2,7 +2,9 @@ package books_transport_http
 
 import (
 	"FreeLib/internal/core/domain"
+	core_jwt "FreeLib/internal/core/jwt"
 	core_http_utils "FreeLib/internal/core/transport/http/utils"
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -28,4 +30,12 @@ func getIDQueryParam(r *http.Request) (int, error) {
 	}
 
 	return *id, nil
+}
+
+func idFromJWTToken(ctx context.Context) (int, error) {
+	claims, ok := core_jwt.ClaimsFromContext(ctx)
+	if !ok {
+		return domain.UninitializedID, fmt.Errorf("failed claims from context")
+	}
+	return claims.ID, nil
 }

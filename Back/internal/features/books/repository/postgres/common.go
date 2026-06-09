@@ -6,8 +6,8 @@ import (
 	"fmt"
 )
 
-func (r *BookRepositry) queryBooks(ctx context.Context, query string, limit *int, offset *int) ([]domain.Book, error) {
-	rows, err := r.pool.Query(ctx, query, limit, offset)
+func (r *BookRepositry) queryBooks(ctx context.Context, query string, arg ...any) ([]domain.Book, error) {
+	rows, err := r.pool.Query(ctx, query, arg...)
 	if err != nil {
 		return nil, fmt.Errorf("select users: %w", err)
 	}
