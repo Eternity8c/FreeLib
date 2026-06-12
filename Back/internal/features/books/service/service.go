@@ -19,6 +19,7 @@ type BookRepository interface {
 	FavoriteBook(ctx context.Context, userID int, bookID int) (int, domain.Book, error)
 	GetFavoriteBooks(ctx context.Context, userID int) ([]domain.Book, error)
 	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
+	UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error)
 }
 
 func NewBookService(bookRepository BookRepository) *BookService {
@@ -116,4 +117,17 @@ func (s *BookService) GetBooksByGenre(ctx context.Context, genre string) ([]doma
 	}
 
 	return bookDomains, nil
+}
+
+func (s *BookService) UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error) {
+	if err := book.Validate(); err != nil {
+		return domain.Book{}, fmt.Errorf("validate book domain: %w", err)
+	}
+
+	bookDomain, err := s.bookRepository.UpdateBook(ctx, book)
+	if err != nil {
+		return domain.Book{}, fmt.Errorf("update book: %w", err)
+	}
+
+	return bookDomain, nil
 }

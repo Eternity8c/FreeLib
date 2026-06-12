@@ -1,6 +1,9 @@
 package books_transport_http
 
-import "FreeLib/internal/core/domain"
+import (
+	"FreeLib/internal/core/domain"
+	"time"
+)
 
 type BookDTOResponce struct {
 	ID     int    `json:"id"`
@@ -52,8 +55,30 @@ type GetFavoriteBooksRecponce []BookDTOResponce
 
 type GetNewBooksResponce []BookDTOResponce
 
-type GetBooksByGenre []BookDTOResponce
+type UpdateBookRequest struct {
+	ID     int    `json:"id"`
+	Title  string `json:"title"`
+	Author string `json:"author"`
+	Genre  string `json:"genre"`
+}
 
-func domainFromDto(request CreateBookRequest) domain.Book {
+type UpdateBookResponce struct {
+	ID     int    `json:"id"`
+	Title  string `json:"title"`
+	Author string `json:"author"`
+	Genre  string `json:"genre"`
+}
+
+func createBookDomainFromDTO(request CreateBookRequest) domain.Book {
 	return domain.NewBookUninitialized(request.Title, request.Author, request.Genre)
+}
+
+func updateBookDomainFromDTO(request UpdateBookRequest) domain.Book {
+	return domain.NewBook(
+		request.ID,
+		request.Title,
+		request.Author,
+		request.Genre,
+		time.Now().UTC(),
+	)
 }

@@ -23,6 +23,7 @@ type BookServices interface {
 	FavoriteBook(ctx context.Context, userID int, bookID int) (int, domain.Book, error)
 	GetFavoriteBooks(ctx context.Context, userID int) ([]domain.Book, error)
 	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
+	UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error)
 }
 
 func NewBookHTTPHandler(bookServices BookServices) *BooksHTTPHandler {
@@ -67,6 +68,11 @@ func (h *BooksHTTPHandler) Routes() []core_http_server.Route {
 				core_http_middleware.Authorization()(http.HandlerFunc(h.GetFavoriteBooks)).ServeHTTP(w, r)
 			},
 		},
+		{
+			Method:  http.MethodPut,
+			Path:    "/book",
+			Handler: core_http_middleware.AdminOnly(h.UpdateBook),
+		},
 	}
 }
 
@@ -84,7 +90,7 @@ func (h *BooksHTTPHandler) CreateBook(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookDomain, err := h.bookServices.CreateBook(ctx, domainFromDto(request))
+	bookDomain, err := h.bookServices.CreateBook(ctx, createBookDomainFromDTO(request))
 	if err != nil {
 		responceHandler.ErrorResponce(err, "failed to create book")
 		return
@@ -219,8 +225,32 @@ func (h *BooksHTTPHandler) GetNewBooks(rw http.ResponseWriter, r *http.Request) 
 	booksDomain, err := h.bookServices.GetNewBooks(ctx, limit, offset)
 	if err != nil {
 		responceHandler.ErrorResponce(err, "failed to get new books")
+		return
 	}
 
 	responce := GetNewBooksResponce(booksDTOFromDomains(booksDomain))
+	responceHandler.JSONResponce(responce, http.StatusOK)
+}
+
+func (h *BooksHTTPHandler) UpdateBook(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
+
+	log.Debug("invoke update book handler")
+
+	var request UpdateBookRequest
+	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+		responceHandler.ErrorResponce(err, "failed decode and validate request")
+		return
+	}
+
+	bookDomain, err := h.bookServices.UpdateBook(ctx, updateBookDomainFromDTO(request))
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed update book from repository")
+		return
+	}
+
+	responce := UpdateBookResponce(bookDTOFromDomain(bookDomain))
 	responceHandler.JSONResponce(responce, http.StatusOK)
 }
