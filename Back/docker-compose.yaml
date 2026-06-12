@@ -14,6 +14,7 @@ services:
   
   freelib-postgres-migrate:
     image: migrate/migrate:v4.19.1
+    user: "${UID}:${GID}"
     volumes:
       - ${PROJECT_ROOT}/migrations:/migrations
 

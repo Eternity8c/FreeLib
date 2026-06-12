@@ -5,6 +5,9 @@ import (
 	core_postgres_pool "FreeLib/internal/core/repository/postgres/pool"
 	core_http_middleware "FreeLib/internal/core/transport/http/middleware"
 	core_http_server "FreeLib/internal/core/transport/http/server"
+	book_postgres_repository "FreeLib/internal/features/books/repository/postgres"
+	book_service "FreeLib/internal/features/books/service"
+	books_transport_http "FreeLib/internal/features/books/transport/http"
 	users_postgres_repository "FreeLib/internal/features/users/repository/postrgres"
 	users_service "FreeLib/internal/features/users/service"
 	users_transport_http "FreeLib/internal/features/users/transport/http"
@@ -52,6 +55,12 @@ func main() {
 	userService := users_service.NewUsersService(usersRepository)
 	usersTransportHTTP := users_transport_http.NewUserHTTPHandler(userService)
 
+	logger.Debug("initializing feature", zap.String("feature", "books"))
+
+	booksReposirory := book_postgres_repository.NewBookRepository(pool)
+	booksService := book_service.NewBookService(booksReposirory)
+	booksTransportHTTP := books_transport_http.NewBookHTTPHandler(booksService)
+
 	logger.Debug("initializing HTTP server")
 
 	httpServer := core_http_server.NewHTTPServer(
@@ -65,6 +74,7 @@ func main() {
 
 	router := core_http_server.NewRouter()
 	router.RegisterRoutes(usersTransportHTTP.Routes()...)
+	router.RegisterRoutes(booksTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRoutes(router)
 
 	if err := httpServer.Run(ctx); err != nil {

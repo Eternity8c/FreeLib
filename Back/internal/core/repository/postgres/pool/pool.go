@@ -16,6 +16,7 @@ type Pool interface {
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
 	Close()
 	OpTimeout() time.Duration
+	Begin(ctx context.Context) (pgx.Tx, error)
 }
 
 type ConnectionPool struct {
