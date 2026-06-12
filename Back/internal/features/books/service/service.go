@@ -20,6 +20,7 @@ type BookRepository interface {
 	GetFavoriteBooks(ctx context.Context, userID int) ([]domain.Book, error)
 	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
 	UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error)
+	DeleteBook(ctx context.Context, bookID int) error
 }
 
 func NewBookService(bookRepository BookRepository) *BookService {
@@ -130,4 +131,13 @@ func (s *BookService) UpdateBook(ctx context.Context, book domain.Book) (domain.
 	}
 
 	return bookDomain, nil
+}
+
+func (s *BookService) DeleteBook(ctx context.Context, bookID int) error {
+	err := s.bookRepository.DeleteBook(ctx, bookID)
+	if err != nil {
+		return fmt.Errorf("delete book from repository: %w", err)
+	}
+
+	return nil
 }

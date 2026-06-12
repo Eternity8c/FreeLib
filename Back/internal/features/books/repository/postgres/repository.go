@@ -364,3 +364,31 @@ func (r *BookRepositry) UpdateBook(ctx context.Context, book domain.Book) (domai
 		bookModel.CreatedAt,
 	), nil
 }
+
+func (r *BookRepositry) DeleteBook(ctx context.Context, bookID int) error {
+	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
+	defer cancel()
+
+	query := `
+	DELETE FROM freelib.books WHERE book_id = $1;
+	`
+
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	tag, err := tx.Exec(ctx, query, bookID)
+	if err != nil {
+		return fmt.Errorf("transaction exec: %w", err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("rows affected %d: %w", tag.RowsAffected(), core_errors.ErrInvalidArgumment)
+	}
+
+	tx.Commit(ctx)
+
+	return nil
+}

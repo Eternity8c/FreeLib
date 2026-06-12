@@ -24,6 +24,7 @@ type BookServices interface {
 	GetFavoriteBooks(ctx context.Context, userID int) ([]domain.Book, error)
 	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
 	UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error)
+	DeleteBook(ctx context.Context, bookID int) error
 }
 
 func NewBookHTTPHandler(bookServices BookServices) *BooksHTTPHandler {
@@ -72,6 +73,11 @@ func (h *BooksHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodPut,
 			Path:    "/book",
 			Handler: core_http_middleware.AdminOnly(h.UpdateBook),
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/book",
+			Handler: core_http_middleware.AdminOnly(h.DeleteBook),
 		},
 	}
 }
@@ -252,5 +258,31 @@ func (h *BooksHTTPHandler) UpdateBook(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	responce := UpdateBookResponce(bookDTOFromDomain(bookDomain))
+	responceHandler.JSONResponce(responce, http.StatusOK)
+}
+
+func (h *BooksHTTPHandler) DeleteBook(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
+
+	log.Debug("invoke delete book handler")
+
+	bookID, err := getIDQueryParam(r)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed get ID query param")
+		return
+	}
+
+	err = h.bookServices.DeleteBook(ctx, bookID)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed delete book from repository")
+		return
+	}
+
+	responce := DeleteBookResponce{
+		BookID: bookID,
+		Status: "ok",
+	}
 	responceHandler.JSONResponce(responce, http.StatusOK)
 }

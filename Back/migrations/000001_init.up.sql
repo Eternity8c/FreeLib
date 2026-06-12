@@ -36,6 +36,7 @@ CREATE TABLE freelib.favorite_book (
     book_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES freelib.users (user_id),
     FOREIGN KEY (book_id) REFERENCES freelib.books (book_id)
+    ON DELETE CASCADE
 );
 
 CREATE UNIQUE INDEX idx_unique_user_book ON freelib.favorite_book (user_id, book_id);
