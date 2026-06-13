@@ -69,11 +69,6 @@ type UpdateBookResponce struct {
 	Genre  string `json:"genre"`
 }
 
-type DeleteBookResponce struct {
-	BookID int    `json:"book_id"`
-	Status string `json:"status"`
-}
-
 func createBookDomainFromDTO(request CreateBookRequest) domain.Book {
 	return domain.NewBookUninitialized(request.Title, request.Author, request.Genre)
 }

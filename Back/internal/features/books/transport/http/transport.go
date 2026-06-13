@@ -280,9 +280,5 @@ func (h *BooksHTTPHandler) DeleteBook(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responce := DeleteBookResponce{
-		BookID: bookID,
-		Status: "ok",
-	}
-	responceHandler.JSONResponce(responce, http.StatusOK)
+	responceHandler.NoContentResponce()
 }
