@@ -63,3 +63,18 @@ migrate-action:
 		-path ./migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@freelib-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		$(action)
+
+freelib-deploy:
+	@docker-compose up -d --build freelib
+
+ps:
+	@docker compose ps
+
+swagger-gen:
+	@docker compose run --rm swagger \
+		init \
+		-g cmd/freelib/main.go \
+		-o docs \
+		--parseInternal \
+		--parseDependency
+	@sudo chown -R $$(id -u):$$(id -g) docs
