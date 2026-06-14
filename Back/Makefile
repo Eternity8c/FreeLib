@@ -3,6 +3,10 @@ export
 
 export PROJECT_ROOT=$(shell pwd)
 
+# Запуск докера
+start-docker:
+	@sudo systemctl start docker
+
 # Запуск контейнера
 env-up:
 	@docker-compose up freelib-postgres -d
@@ -26,7 +30,7 @@ env-cleanup:
 run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
 	export POSTGRES_HOST=localhost && \
-	go run cmd/server/main.go
+	go run cmd/freelib/main.go
 
 # Запуск тестов
 test: 

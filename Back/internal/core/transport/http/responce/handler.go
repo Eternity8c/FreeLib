@@ -1,12 +1,13 @@
 package core_http_responce
 
 import (
-	core_errors "FreeLib/internal/core/errors"
-	core_logger "FreeLib/internal/core/logger"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+
+	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
+	core_logger "github.com/Eternity8c/FreeLib/internal/core/logger"
 
 	"go.uber.org/zap"
 )
@@ -83,9 +84,9 @@ func (h *HTTPResponceHandler) PanicResponce(p any, msg string) {
 }
 
 func (h *HTTPResponceHandler) errorResponce(statusCode int, err error, msg string) {
-	responce := map[string]string{
-		"message": msg,
-		"error":   err.Error(),
+	responce := ErrorResponce{
+		Error:   err.Error(),
+		Message: msg,
 	}
 
 	h.JSONResponce(responce, statusCode)

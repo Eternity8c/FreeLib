@@ -1,10 +1,11 @@
 package book_service
 
 import (
-	"FreeLib/internal/core/domain"
-	core_errors "FreeLib/internal/core/errors"
 	"context"
 	"fmt"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
+	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
 )
 
 type BookService struct {

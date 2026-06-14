@@ -1,11 +1,13 @@
 package core_http_middleware
 
 import (
-	core_logger "FreeLib/internal/core/logger"
-	core_http_responce "FreeLib/internal/core/transport/http/responce"
 	"context"
 	"net/http"
+	"strings"
 	"time"
+
+	core_logger "github.com/Eternity8c/FreeLib/internal/core/logger"
+	core_http_responce "github.com/Eternity8c/FreeLib/internal/core/transport/http/responce"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -70,6 +72,11 @@ func Panic() Middleware {
 func Trace() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, "/swagger") {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			ctx := r.Context()
 			log := core_logger.FromContext(ctx)
 			rw := core_http_responce.NewResponceWriter(w)

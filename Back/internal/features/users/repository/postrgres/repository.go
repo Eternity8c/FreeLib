@@ -1,10 +1,11 @@
 package users_postgres_repository
 
 import (
-	"FreeLib/internal/core/domain"
-	core_postgres_pool "FreeLib/internal/core/repository/postgres/pool"
 	"context"
 	"fmt"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
+	core_postgres_pool "github.com/Eternity8c/FreeLib/internal/core/repository/postgres/pool"
 )
 
 type UsersRepository struct {

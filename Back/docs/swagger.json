@@ -1,7 +1,753 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "FreeLib Aplication REST-API schema",
+        "title": "Goland FreeLib API",
+        "contact": {},
+        "version": "1.0"
     },
-    "paths": {}
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/book": {
+            "get": {
+                "description": "Получить полную информацию о книге по её идентификатору",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Получить книгу по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Полная информация о книге",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_books_transport_http.BookDTOResponce"
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Обновить информацию о книге (требуется права администратора)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Обновить информацию о книге",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "UpdateBook тело запроса",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_books_transport_http.UpdateBookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Обновленная информация о книге",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_books_transport_http.UpdateBookResponce"
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "404": {
+                        "description": "Book not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Добавить книгу в список избранных текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Добавить книгу в избранное",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "FavoriteBook тело запроса",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_books_transport_http.FavoriteBookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Книга успешно добавлена в избранное",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_books_transport_http.FavoriteBookResponce"
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "404": {
+                        "description": "Book not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Удалить книгу из системы (требуется права администратора)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Удалить книгу",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Книга успешно удалена"
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "404": {
+                        "description": "Book not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            }
+        },
+        "/books": {
+            "get": {
+                "description": "Получить список всех книг с поддержкой пагинации и фильтрации по жанру",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Получить все книги",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Количество книг (default: 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Смещение (default: 0)",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по жанру",
+                        "name": "genre",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список книг",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_features_books_transport_http.BookDTOResponce"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Создать новую книгу в системе (требуется права администратора)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Создать книгу",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "CreateBook тело запроса",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_books_transport_http.CreateBookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Успешно созданная книга",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_books_transport_http.CreateBookResponce"
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/favorite": {
+            "get": {
+                "description": "Получить список всех избранных книг текущего пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Получить избранные книги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список избранных книг",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_features_books_transport_http.BookDTOResponce"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/new": {
+            "get": {
+                "description": "Получить список новых книг с поддержкой пагинации",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Получить новые книги",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Количество книг (default: 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Смещение (default: 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список новых книг",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_features_books_transport_http.BookDTOResponce"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Авторизовать пользователя в системе и получить JWT токен",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Авторизовать пользователя",
+                "parameters": [
+                    {
+                        "description": "AuthorizationUser тело запроса",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.AuthorizationUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешная авторизация",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.AuthorizationUserResponce"
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "description": "Создать нового пользователя в системе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Создать пользователя",
+                "parameters": [
+                    {
+                        "description": "CreateUser тело запроса",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Успешно созданный пользователь",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.CreateUserResponce"
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequest",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_features_books_transport_http.BookDTOResponce": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "F. Scott Fitzgerald"
+                },
+                "genre": {
+                    "type": "string",
+                    "example": "Fiction"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The Great Gatsby"
+                }
+            }
+        },
+        "internal_features_books_transport_http.CreateBookRequest": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "F. Scott Fitzgerald"
+                },
+                "genre": {
+                    "type": "string",
+                    "example": "Fiction"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The Great Gatsby"
+                }
+            }
+        },
+        "internal_features_books_transport_http.CreateBookResponce": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "F. Scott Fitzgerald"
+                },
+                "genre": {
+                    "type": "string",
+                    "example": "Fiction"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The Great Gatsby"
+                }
+            }
+        },
+        "internal_features_books_transport_http.FavoriteBookRequest": {
+            "type": "object",
+            "properties": {
+                "book_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "internal_features_books_transport_http.FavoriteBookResponce": {
+            "type": "object",
+            "properties": {
+                "book": {
+                    "$ref": "#/definitions/internal_features_books_transport_http.BookDTOResponce"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "internal_features_books_transport_http.UpdateBookRequest": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "F. Scott Fitzgerald"
+                },
+                "genre": {
+                    "type": "string",
+                    "example": "Fiction"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The Great Gatsby"
+                }
+            }
+        },
+        "internal_features_books_transport_http.UpdateBookResponce": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "F. Scott Fitzgerald"
+                },
+                "genre": {
+                    "type": "string",
+                    "example": "Fiction"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The Great Gatsby"
+                }
+            }
+        },
+        "internal_features_users_transport_http.AuthorizationUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@gmail.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password1234"
+                }
+            }
+        },
+        "internal_features_users_transport_http.AuthorizationUserResponce": {
+            "type": "object",
+            "properties": {
+                "jwt_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "internal_features_users_transport_http.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@gmail.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "password1234"
+                }
+            }
+        },
+        "internal_features_users_transport_http.CreateUserResponce": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@gmail.com"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        }
+    }
 }

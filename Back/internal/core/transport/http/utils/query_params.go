@@ -1,10 +1,11 @@
 package core_http_utils
 
 import (
-	core_errors "FreeLib/internal/core/errors"
 	"fmt"
 	"net/http"
 	"strconv"
+
+	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
 )
 
 func GetIntQueryParam(r *http.Request, key string) (*int, error) {

@@ -1,4 +1,506 @@
+basePath: /
+definitions:
+  github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  internal_features_books_transport_http.BookDTOResponce:
+    properties:
+      author:
+        example: F. Scott Fitzgerald
+        type: string
+      genre:
+        example: Fiction
+        type: string
+      id:
+        example: 1
+        type: integer
+      title:
+        example: The Great Gatsby
+        type: string
+    type: object
+  internal_features_books_transport_http.CreateBookRequest:
+    properties:
+      author:
+        example: F. Scott Fitzgerald
+        type: string
+      genre:
+        example: Fiction
+        type: string
+      title:
+        example: The Great Gatsby
+        type: string
+    type: object
+  internal_features_books_transport_http.CreateBookResponce:
+    properties:
+      author:
+        example: F. Scott Fitzgerald
+        type: string
+      genre:
+        example: Fiction
+        type: string
+      id:
+        example: 1
+        type: integer
+      title:
+        example: The Great Gatsby
+        type: string
+    type: object
+  internal_features_books_transport_http.FavoriteBookRequest:
+    properties:
+      book_id:
+        example: 1
+        type: integer
+    type: object
+  internal_features_books_transport_http.FavoriteBookResponce:
+    properties:
+      book:
+        $ref: '#/definitions/internal_features_books_transport_http.BookDTOResponce'
+      user_id:
+        example: 1
+        type: integer
+    type: object
+  internal_features_books_transport_http.UpdateBookRequest:
+    properties:
+      author:
+        example: F. Scott Fitzgerald
+        type: string
+      genre:
+        example: Fiction
+        type: string
+      id:
+        example: 1
+        type: integer
+      title:
+        example: The Great Gatsby
+        type: string
+    type: object
+  internal_features_books_transport_http.UpdateBookResponce:
+    properties:
+      author:
+        example: F. Scott Fitzgerald
+        type: string
+      genre:
+        example: Fiction
+        type: string
+      id:
+        example: 1
+        type: integer
+      title:
+        example: The Great Gatsby
+        type: string
+    type: object
+  internal_features_users_transport_http.AuthorizationUserRequest:
+    properties:
+      email:
+        example: user@gmail.com
+        type: string
+      password:
+        example: password1234
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_features_users_transport_http.AuthorizationUserResponce:
+    properties:
+      jwt_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  internal_features_users_transport_http.CreateUserRequest:
+    properties:
+      email:
+        example: user@gmail.com
+        type: string
+      password:
+        example: password1234
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_features_users_transport_http.CreateUserResponce:
+    properties:
+      email:
+        example: user@gmail.com
+        type: string
+      id:
+        example: 1
+        type: integer
+    type: object
+host: localhost:8080
 info:
   contact: {}
-paths: {}
+  description: FreeLib Aplication REST-API schema
+  title: Goland FreeLib API
+  version: "1.0"
+paths:
+  /book:
+    delete:
+      description: Удалить книгу из системы (требуется права администратора)
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: ID книги
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Книга успешно удалена
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Удалить книгу
+      tags:
+      - books
+    get:
+      description: Получить полную информацию о книге по её идентификатору
+      parameters:
+      - description: ID книги
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Полная информация о книге
+          schema:
+            $ref: '#/definitions/internal_features_books_transport_http.BookDTOResponce'
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Получить книгу по ID
+      tags:
+      - books
+    post:
+      consumes:
+      - application/json
+      description: Добавить книгу в список избранных текущего пользователя
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: FavoriteBook тело запроса
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_features_books_transport_http.FavoriteBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Книга успешно добавлена в избранное
+          schema:
+            $ref: '#/definitions/internal_features_books_transport_http.FavoriteBookResponce'
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Добавить книгу в избранное
+      tags:
+      - books
+    put:
+      consumes:
+      - application/json
+      description: Обновить информацию о книге (требуется права администратора)
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: UpdateBook тело запроса
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_features_books_transport_http.UpdateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленная информация о книге
+          schema:
+            $ref: '#/definitions/internal_features_books_transport_http.UpdateBookResponce'
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Обновить информацию о книге
+      tags:
+      - books
+  /books:
+    get:
+      description: Получить список всех книг с поддержкой пагинации и фильтрации по
+        жанру
+      parameters:
+      - description: 'Количество книг (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Смещение (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      - description: Фильтр по жанру
+        in: query
+        name: genre
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список книг
+          schema:
+            items:
+              $ref: '#/definitions/internal_features_books_transport_http.BookDTOResponce'
+            type: array
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Получить все книги
+      tags:
+      - books
+    post:
+      consumes:
+      - application/json
+      description: Создать новую книгу в системе (требуется права администратора)
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: CreateBook тело запроса
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_features_books_transport_http.CreateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Успешно созданная книга
+          schema:
+            $ref: '#/definitions/internal_features_books_transport_http.CreateBookResponce'
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Создать книгу
+      tags:
+      - books
+  /books/favorite:
+    get:
+      description: Получить список всех избранных книг текущего пользователя
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список избранных книг
+          schema:
+            items:
+              $ref: '#/definitions/internal_features_books_transport_http.BookDTOResponce'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Получить избранные книги
+      tags:
+      - books
+  /books/new:
+    get:
+      description: Получить список новых книг с поддержкой пагинации
+      parameters:
+      - description: 'Количество книг (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Смещение (default: 0)'
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список новых книг
+          schema:
+            items:
+              $ref: '#/definitions/internal_features_books_transport_http.BookDTOResponce'
+            type: array
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Получить новые книги
+      tags:
+      - books
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизовать пользователя в системе и получить JWT токен
+      parameters:
+      - description: AuthorizationUser тело запроса
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_features_users_transport_http.AuthorizationUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная авторизация
+          schema:
+            $ref: '#/definitions/internal_features_users_transport_http.AuthorizationUserResponce'
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Авторизовать пользователя
+      tags:
+      - users
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Создать нового пользователя в системе
+      parameters:
+      - description: CreateUser тело запроса
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_features_users_transport_http.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Успешно созданный пользователь
+          schema:
+            $ref: '#/definitions/internal_features_users_transport_http.CreateUserResponce'
+        "400":
+          description: BadRequest
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_Eternity8c_FreeLib_internal_core_transport_http_responce.ErrorResponce'
+      summary: Создать пользователя
+      tags:
+      - users
 swagger: "2.0"

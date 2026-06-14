@@ -1,8 +1,9 @@
 package book_postgres_repository
 
 import (
-	"FreeLib/internal/core/domain"
 	"time"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
 )
 
 type BookModel struct {

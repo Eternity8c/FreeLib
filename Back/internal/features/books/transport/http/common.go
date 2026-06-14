@@ -1,12 +1,13 @@
 package books_transport_http
 
 import (
-	"FreeLib/internal/core/domain"
-	core_jwt "FreeLib/internal/core/jwt"
-	core_http_utils "FreeLib/internal/core/transport/http/utils"
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
+	core_jwt "github.com/Eternity8c/FreeLib/internal/core/jwt"
+	core_http_utils "github.com/Eternity8c/FreeLib/internal/core/transport/http/utils"
 )
 
 func getLimitOffsetQueryParams(r *http.Request) (*int, *int, error) {

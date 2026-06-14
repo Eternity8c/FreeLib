@@ -1,12 +1,13 @@
 package book_postgres_repository
 
 import (
-	"FreeLib/internal/core/domain"
-	core_errors "FreeLib/internal/core/errors"
-	core_postgres_pool "FreeLib/internal/core/repository/postgres/pool"
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
+	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
+	core_postgres_pool "github.com/Eternity8c/FreeLib/internal/core/repository/postgres/pool"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"

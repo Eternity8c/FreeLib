@@ -1,8 +1,9 @@
 package book_service
 
 import (
-	core_errors "FreeLib/internal/core/errors"
 	"fmt"
+
+	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
 )
 
 func validateLimitOffset(limit *int, offset *int) error {

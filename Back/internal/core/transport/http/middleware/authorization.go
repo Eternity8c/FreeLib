@@ -1,12 +1,13 @@
 package core_http_middleware
 
 import (
-	core_errors "FreeLib/internal/core/errors"
-	core_jwt "FreeLib/internal/core/jwt"
-	core_logger "FreeLib/internal/core/logger"
-	core_http_responce "FreeLib/internal/core/transport/http/responce"
 	"net/http"
 	"strings"
+
+	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
+	core_jwt "github.com/Eternity8c/FreeLib/internal/core/jwt"
+	core_logger "github.com/Eternity8c/FreeLib/internal/core/logger"
+	core_http_responce "github.com/Eternity8c/FreeLib/internal/core/transport/http/responce"
 )
 
 func Authorization() Middleware {

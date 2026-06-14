@@ -1,9 +1,10 @@
 package book_postgres_repository
 
 import (
-	"FreeLib/internal/core/domain"
 	"context"
 	"fmt"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
 )
 
 func (r *BookRepositry) queryBooks(ctx context.Context, query string, arg ...any) ([]domain.Book, error) {

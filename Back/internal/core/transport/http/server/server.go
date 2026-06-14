@@ -1,13 +1,16 @@
 package core_http_server
 
 import (
-	core_logger "FreeLib/internal/core/logger"
-	core_http_middleware "FreeLib/internal/core/transport/http/middleware"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/Eternity8c/FreeLib/docs"
+	core_logger "github.com/Eternity8c/FreeLib/internal/core/logger"
+	core_http_middleware "github.com/Eternity8c/FreeLib/internal/core/transport/http/middleware"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
 
@@ -39,6 +42,24 @@ func (h *HTTPServer) RegisterAPIRoutes(routers ...*Router) {
 			router,
 		)
 	}
+}
+
+func (s *HTTPServer) RegisterSwagger() {
+	s.mux.Handle(
+		"/swagger/",
+		httpSwagger.Handler(
+			httpSwagger.URL("/swagger/doc.json"),
+		),
+	)
+
+	s.mux.HandleFunc(
+		"/swagger/doc.json",
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(docs.SwaggerInfo.ReadDoc()))
+		},
+	)
 }
 
 func (h *HTTPServer) Run(ctx context.Context) error {
