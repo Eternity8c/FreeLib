@@ -1,14 +1,15 @@
 package books_transport_http
 
 import (
-	"FreeLib/internal/core/domain"
-	core_logger "FreeLib/internal/core/logger"
-	core_http_middleware "FreeLib/internal/core/transport/http/middleware"
-	core_http_request "FreeLib/internal/core/transport/http/request"
-	core_http_responce "FreeLib/internal/core/transport/http/responce"
-	core_http_server "FreeLib/internal/core/transport/http/server"
 	"context"
 	"net/http"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
+	core_logger "github.com/Eternity8c/FreeLib/internal/core/logger"
+	core_http_middleware "github.com/Eternity8c/FreeLib/internal/core/transport/http/middleware"
+	core_http_request "github.com/Eternity8c/FreeLib/internal/core/transport/http/request"
+	core_http_responce "github.com/Eternity8c/FreeLib/internal/core/transport/http/responce"
+	core_http_server "github.com/Eternity8c/FreeLib/internal/core/transport/http/server"
 )
 
 type BooksHTTPHandler struct {
@@ -82,6 +83,20 @@ func (h *BooksHTTPHandler) Routes() []core_http_server.Route {
 	}
 }
 
+// CreateBook	godoc
+// @Summary		Создать книгу
+// @Description	Создать новую книгу в системе (требуется права администратора)
+// @Tags		books
+// @Accept		json
+// @Produce		json
+// @Param		Authorization header string true "Bearer JWT token"
+// @Param		request		body CreateBookRequest true "CreateBook тело запроса"
+// @Success		201	{object} CreateBookResponce "Успешно созданная книга"
+// @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure		401	{object} core_http_responce.ErrorResponce "Unauthorized"
+// @Failure		403	{object} core_http_responce.ErrorResponce "Forbidden"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/books	[post]
 func (h *BooksHTTPHandler) CreateBook(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -106,60 +121,18 @@ func (h *BooksHTTPHandler) CreateBook(rw http.ResponseWriter, r *http.Request) {
 	responceHandler.JSONResponce(responce, http.StatusCreated)
 }
 
-func (h *BooksHTTPHandler) FavoriteBook(rw http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	log := core_logger.FromContext(ctx)
-	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
-
-	log.Debug("invoke favorite book handler")
-
-	userID, err := idFromJWTToken(ctx)
-	if err != nil {
-		responceHandler.ErrorResponce(err, "failed get id from JWT token")
-		return
-	}
-
-	var request FavoriteBookRequest
-	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
-		responceHandler.ErrorResponce(err, "failed decode and validate request")
-		return
-	}
-
-	uID, bookDomain, err := h.bookServices.FavoriteBook(ctx, userID, request.BookID)
-	if err != nil {
-		responceHandler.ErrorResponce(err, "failed favorite book")
-		return
-	}
-
-	responce := FavoriteBookResponce{
-		UserID: uID,
-		Book:   bookDTOFromDomain(bookDomain),
-	}
-	responceHandler.JSONResponce(responce, http.StatusOK)
-}
-
-func (h *BooksHTTPHandler) GetBook(rw http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	log := core_logger.FromContext(ctx)
-	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
-
-	log.Debug("invoke get book")
-	id, err := getIDQueryParam(r)
-	if err != nil {
-		responceHandler.ErrorResponce(err, "failed to get ID query param")
-		return
-	}
-
-	bookDomain, err := h.bookServices.GetBook(ctx, id)
-	if err != nil {
-		responceHandler.ErrorResponce(err, "failed to get book")
-		return
-	}
-
-	responce := GetBookResponce(bookDTOFromDomain(bookDomain))
-	responceHandler.JSONResponce(responce, http.StatusOK)
-}
-
+// GetBooks	godoc
+// @Summary		Получить все книги
+// @Description	Получить список всех книг с поддержкой пагинации и фильтрации по жанру
+// @Tags		books
+// @Produce		json
+// @Param		limit	query int false "Количество книг (default: 10)"
+// @Param		offset	query int false "Смещение (default: 0)"
+// @Param		genre	query string false "Фильтр по жанру"
+// @Success		200	{array} BookDTOResponce "Список книг"
+// @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/books	[get]
 func (h *BooksHTTPHandler) GetBooks(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -192,6 +165,129 @@ func (h *BooksHTTPHandler) GetBooks(rw http.ResponseWriter, r *http.Request) {
 	responceHandler.JSONResponce(responce, http.StatusOK)
 }
 
+// GetNewBooks	godoc
+// @Summary		Получить новые книги
+// @Description	Получить список новых книг с поддержкой пагинации
+// @Tags		books
+// @Produce		json
+// @Param		limit	query int false "Количество книг (default: 10)"
+// @Param		offset	query int false "Смещение (default: 0)"
+// @Success		200	{array} BookDTOResponce "Список новых книг"
+// @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/books/new	[get]
+func (h *BooksHTTPHandler) GetNewBooks(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
+
+	log.Debug("invoke GetNewBooks handler")
+
+	limit, offset, err := getLimitOffsetQueryParams(r)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed to get limit offset query param")
+		return
+	}
+
+	bookDomains, err := h.bookServices.GetNewBooks(ctx, limit, offset)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed to get new books")
+		return
+	}
+
+	responce := GetNewBooksResponce(booksDTOFromDomains(bookDomains))
+	responceHandler.JSONResponce(responce, http.StatusOK)
+}
+
+// GetBook	godoc
+// @Summary		Получить книгу по ID
+// @Description	Получить полную информацию о книге по её идентификатору
+// @Tags		books
+// @Produce		json
+// @Param		id	query int true "ID книги"
+// @Success		200	{object} BookDTOResponce "Полная информация о книге"
+// @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure		404	{object} core_http_responce.ErrorResponce "Not Found"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/book	[get]
+func (h *BooksHTTPHandler) GetBook(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
+
+	log.Debug("invoke get book")
+	id, err := getIDQueryParam(r)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed to get ID query param")
+		return
+	}
+
+	bookDomain, err := h.bookServices.GetBook(ctx, id)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed to get book")
+		return
+	}
+
+	responce := GetBookResponce(bookDTOFromDomain(bookDomain))
+	responceHandler.JSONResponce(responce, http.StatusOK)
+}
+
+// FavoriteBook	godoc
+// @Summary		Добавить книгу в избранное
+// @Description	Добавить книгу в список избранных текущего пользователя
+// @Tags		books
+// @Accept		json
+// @Produce		json
+// @Param		Authorization header string true "Bearer JWT token"
+// @Param		request		body FavoriteBookRequest true "FavoriteBook тело запроса"
+// @Success		200	{object} FavoriteBookResponce "Книга успешно добавлена в избранное"
+// @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure		401	{object} core_http_responce.ErrorResponce "Unauthorized"
+// @Failure		404	{object} core_http_responce.ErrorResponce "Book not found"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/book	[post]
+func (h *BooksHTTPHandler) FavoriteBook(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
+
+	log.Debug("invoke favorite book handler")
+
+	userID, err := idFromJWTToken(ctx)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed get id from JWT token")
+		return
+	}
+
+	var request FavoriteBookRequest
+	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+		responceHandler.ErrorResponce(err, "failed decode and validate request")
+		return
+	}
+
+	uID, bookDomain, err := h.bookServices.FavoriteBook(ctx, userID, request.BookID)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed favorite book")
+		return
+	}
+
+	responce := FavoriteBookResponce{
+		UserID: uID,
+		Book:   bookDTOFromDomain(bookDomain),
+	}
+	responceHandler.JSONResponce(responce, http.StatusOK)
+}
+
+// GetFavoriteBooks	godoc
+// @Summary		Получить избранные книги
+// @Description	Получить список всех избранных книг текущего пользователя
+// @Tags		books
+// @Produce		json
+// @Param		Authorization header string true "Bearer JWT token"
+// @Success		200	{array} BookDTOResponce "Список избранных книг"
+// @Failure		401	{object} core_http_responce.ErrorResponce "Unauthorized"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/books/favorite	[get]
 func (h *BooksHTTPHandler) GetFavoriteBooks(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -215,29 +311,21 @@ func (h *BooksHTTPHandler) GetFavoriteBooks(rw http.ResponseWriter, r *http.Requ
 	responceHandler.JSONResponce(responce, http.StatusOK)
 }
 
-func (h *BooksHTTPHandler) GetNewBooks(rw http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	log := core_logger.FromContext(ctx)
-	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
-
-	log.Debug("invoke GetNewBooks handler")
-
-	limit, offset, err := getLimitOffsetQueryParams(r)
-	if err != nil {
-		responceHandler.ErrorResponce(err, "failed to get limit offset query param")
-		return
-	}
-
-	booksDomain, err := h.bookServices.GetNewBooks(ctx, limit, offset)
-	if err != nil {
-		responceHandler.ErrorResponce(err, "failed to get new books")
-		return
-	}
-
-	responce := GetNewBooksResponce(booksDTOFromDomains(booksDomain))
-	responceHandler.JSONResponce(responce, http.StatusOK)
-}
-
+// UpdateBook	godoc
+// @Summary		Обновить информацию о книге
+// @Description	Обновить информацию о книге (требуется права администратора)
+// @Tags		books
+// @Accept		json
+// @Produce		json
+// @Param		Authorization header string true "Bearer JWT token"
+// @Param		request		body UpdateBookRequest true "UpdateBook тело запроса"
+// @Success		200	{object} UpdateBookResponce "Обновленная информация о книге"
+// @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure		401	{object} core_http_responce.ErrorResponce "Unauthorized"
+// @Failure		403	{object} core_http_responce.ErrorResponce "Forbidden"
+// @Failure		404	{object} core_http_responce.ErrorResponce "Book not found"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/book	[put]
 func (h *BooksHTTPHandler) UpdateBook(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -261,6 +349,20 @@ func (h *BooksHTTPHandler) UpdateBook(rw http.ResponseWriter, r *http.Request) {
 	responceHandler.JSONResponce(responce, http.StatusOK)
 }
 
+// DeleteBook	godoc
+// @Summary		Удалить книгу
+// @Description	Удалить книгу из системы (требуется права администратора)
+// @Tags		books
+// @Produce		json
+// @Param		Authorization header string true "Bearer JWT token"
+// @Param		id		query int true "ID книги"
+// @Success		204	"Книга успешно удалена"
+// @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure		401	{object} core_http_responce.ErrorResponce "Unauthorized"
+// @Failure		403	{object} core_http_responce.ErrorResponce "Forbidden"
+// @Failure		404	{object} core_http_responce.ErrorResponce "Book not found"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/book	[delete]
 func (h *BooksHTTPHandler) DeleteBook(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -280,9 +382,5 @@ func (h *BooksHTTPHandler) DeleteBook(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responce := DeleteBookResponce{
-		BookID: bookID,
-		Status: "ok",
-	}
-	responceHandler.JSONResponce(responce, http.StatusOK)
+	responceHandler.NoContentResponce()
 }

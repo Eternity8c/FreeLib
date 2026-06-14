@@ -1,10 +1,11 @@
 package core_jwt
 
 import (
-	"FreeLib/internal/core/domain"
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
 
 	"github.com/golang-jwt/jwt/v5"
 )

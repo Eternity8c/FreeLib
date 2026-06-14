@@ -1,13 +1,14 @@
 package users_transport_http
 
 import (
-	"FreeLib/internal/core/domain"
-	core_logger "FreeLib/internal/core/logger"
-	core_http_request "FreeLib/internal/core/transport/http/request"
-	core_http_responce "FreeLib/internal/core/transport/http/responce"
-	core_http_server "FreeLib/internal/core/transport/http/server"
 	"context"
 	"net/http"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
+	core_logger "github.com/Eternity8c/FreeLib/internal/core/logger"
+	core_http_request "github.com/Eternity8c/FreeLib/internal/core/transport/http/request"
+	core_http_responce "github.com/Eternity8c/FreeLib/internal/core/transport/http/responce"
+	core_http_server "github.com/Eternity8c/FreeLib/internal/core/transport/http/server"
 )
 
 type UsersHTTPHandler struct {
@@ -40,6 +41,17 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 	}
 }
 
+// CreateUser    godoc
+// @Summary      Создать пользователя
+// @Description  Создать нового пользователя в системе
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request    body CreateUserRequest true "CreateUser тело запроса"
+// @Success      201        {object} CreateUserResponce "Успешно созданный пользователь"
+// @Failure      400       {object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure      500       {object} core_http_responce.ErrorResponce "Internal server error"
+// @Router      /register  [post]
 func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -63,6 +75,18 @@ func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
 	responceHandler.JSONResponce(responce, http.StatusCreated)
 }
 
+// AuthorizationUser	godoc
+// @Summary		Авторизовать пользователя
+// @Description	Авторизовать пользователя в системе и получить JWT токен
+// @Tags		users
+// @Accept		json
+// @Produce		json
+// @Param		request	body AuthorizationUserRequest true "AuthorizationUser тело запроса"
+// @Success		200	{object} AuthorizationUserResponce "Успешная авторизация"
+// @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
+// @Failure		401	{object} core_http_responce.ErrorResponce "Unauthorized"
+// @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"
+// @Router		/login	[post]
 func (h *UsersHTTPHandler) AuthorizationUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -82,5 +106,6 @@ func (h *UsersHTTPHandler) AuthorizationUser(rw http.ResponseWriter, r *http.Req
 		return
 	}
 
-	responceHandler.JSONResponce(jwtToken, http.StatusOK)
+	responce := AuthorizationUserResponce{JWTToken: jwtToken}
+	responceHandler.JSONResponce(responce, http.StatusOK)
 }

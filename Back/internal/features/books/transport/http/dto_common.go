@@ -1,15 +1,16 @@
 package books_transport_http
 
 import (
-	"FreeLib/internal/core/domain"
 	"time"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
 )
 
 type BookDTOResponce struct {
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Author string `json:"author"`
-	Genre  string `json:"genre"`
+	ID     int    `json:"id" example:"1"`
+	Title  string `json:"title" example:"The Great Gatsby"`
+	Author string `json:"author" example:"F. Scott Fitzgerald"`
+	Genre  string `json:"genre" example:"Fiction"`
 }
 
 func bookDTOFromDomain(book domain.Book) BookDTOResponce {
@@ -31,19 +32,19 @@ func booksDTOFromDomains(books []domain.Book) []BookDTOResponce {
 }
 
 type CreateBookRequest struct {
-	Title  string `json:"title"`
-	Author string `json:"author"`
-	Genre  string `json:"genre"`
+	Title  string `json:"title" example:"The Great Gatsby"`
+	Author string `json:"author" example:"F. Scott Fitzgerald"`
+	Genre  string `json:"genre" example:"Fiction"`
 }
 
 type CreateBookResponce BookDTOResponce
 
 type FavoriteBookRequest struct {
-	BookID int `json:"book_id"`
+	BookID int `json:"book_id" example:"1"`
 }
 
 type FavoriteBookResponce struct {
-	UserID int             `json:"user_id"`
+	UserID int             `json:"user_id" example:"1"`
 	Book   BookDTOResponce `json:"book"`
 }
 
@@ -56,22 +57,17 @@ type GetFavoriteBooksRecponce []BookDTOResponce
 type GetNewBooksResponce []BookDTOResponce
 
 type UpdateBookRequest struct {
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Author string `json:"author"`
-	Genre  string `json:"genre"`
+	ID     int    `json:"id" example:"1"`
+	Title  string `json:"title" example:"The Great Gatsby"`
+	Author string `json:"author" example:"F. Scott Fitzgerald"`
+	Genre  string `json:"genre" example:"Fiction"`
 }
 
 type UpdateBookResponce struct {
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Author string `json:"author"`
-	Genre  string `json:"genre"`
-}
-
-type DeleteBookResponce struct {
-	BookID int    `json:"book_id"`
-	Status string `json:"status"`
+	ID     int    `json:"id" example:"1"`
+	Title  string `json:"title" example:"The Great Gatsby"`
+	Author string `json:"author" example:"F. Scott Fitzgerald"`
+	Genre  string `json:"genre" example:"Fiction"`
 }
 
 func createBookDomainFromDTO(request CreateBookRequest) domain.Book {

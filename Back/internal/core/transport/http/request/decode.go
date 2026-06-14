@@ -1,10 +1,11 @@
 package core_http_request
 
 import (
-	core_errors "FreeLib/internal/core/errors"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
 
 	"github.com/go-playground/validator/v10"
 )

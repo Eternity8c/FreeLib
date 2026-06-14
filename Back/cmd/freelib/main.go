@@ -1,16 +1,6 @@
 package main
 
 import (
-	core_logger "FreeLib/internal/core/logger"
-	core_postgres_pool "FreeLib/internal/core/repository/postgres/pool"
-	core_http_middleware "FreeLib/internal/core/transport/http/middleware"
-	core_http_server "FreeLib/internal/core/transport/http/server"
-	book_postgres_repository "FreeLib/internal/features/books/repository/postgres"
-	book_service "FreeLib/internal/features/books/service"
-	books_transport_http "FreeLib/internal/features/books/transport/http"
-	users_postgres_repository "FreeLib/internal/features/users/repository/postrgres"
-	users_service "FreeLib/internal/features/users/service"
-	users_transport_http "FreeLib/internal/features/users/transport/http"
 	"context"
 	"fmt"
 	"net/http"
@@ -18,9 +8,27 @@ import (
 	"os/signal"
 	"syscall"
 
+	core_logger "github.com/Eternity8c/FreeLib/internal/core/logger"
+	core_postgres_pool "github.com/Eternity8c/FreeLib/internal/core/repository/postgres/pool"
+	core_http_middleware "github.com/Eternity8c/FreeLib/internal/core/transport/http/middleware"
+	core_http_server "github.com/Eternity8c/FreeLib/internal/core/transport/http/server"
+	book_postgres_repository "github.com/Eternity8c/FreeLib/internal/features/books/repository/postgres"
+	book_service "github.com/Eternity8c/FreeLib/internal/features/books/service"
+	books_transport_http "github.com/Eternity8c/FreeLib/internal/features/books/transport/http"
+	users_postgres_repository "github.com/Eternity8c/FreeLib/internal/features/users/repository/postrgres"
+	users_service "github.com/Eternity8c/FreeLib/internal/features/users/service"
+	users_transport_http "github.com/Eternity8c/FreeLib/internal/features/users/transport/http"
+
 	"go.uber.org/zap"
+
+	_ "github.com/Eternity8c/FreeLib/docs"
 )
 
+// @title       Goland FreeLib API
+// @version     1.0
+// @description FreeLib Aplication REST-API schema
+// @host        localhost:8080
+// @BasePath    /
 func main() {
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -77,23 +85,11 @@ func main() {
 	router.RegisterRoutes(booksTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRoutes(router)
 
+	httpServer.RegisterSwagger()
+
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))
 	}
-	// //Books Handlers
-	// r.HandleFunc("/api/health", bookHandler.HealthHandler).Methods("GET")
-	// r.HandleFunc("/api/books", bookHandler.GetBooksHandler).Methods("GET")
-	// r.HandleFunc("/api/book", bookHandler.GetByIDHandler).Methods("GET")
-	// r.HandleFunc("/api/create", bookHandler.CreateHandler).Methods("POST")
-	// r.HandleFunc("/api/book", bookHandler.DeleteHandler).Methods("DELETE")
-	// r.HandleFunc("/api/book/{id}", bookHandler.UpdateBookHandler).Methods("PATCH")
-	// r.HandleFunc("/api/users/{id}/favorites", bookHandler.AddFavoriteHandler).Methods("POST")
-	// r.HandleFunc("/api/users/{user_id}/favorites/book/{book_id}", bookHandler.DeleteFavoriteHandler).Methods("DELETE")
-	// r.HandleFunc("/api/users/{user_id}/favorites", bookHandler.GetAllFavotiteHandler).Methods("GET")
-
-	// //User Handlers
-	// r.HandleFunc("/api/register", userHandler.RegisterHandler).Methods("POST")
-	// r.HandleFunc("/api/login", userHandler.AuntificationHandler).Methods("POST")
 }
 
 func withCORS(next http.Handler) http.Handler {

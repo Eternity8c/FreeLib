@@ -1,13 +1,14 @@
 package users_service
 
 import (
-	"FreeLib/internal/core/domain"
-	core_errors "FreeLib/internal/core/errors"
-	core_jwt "FreeLib/internal/core/jwt"
-	users_postgres_repository "FreeLib/internal/features/users/repository/postrgres"
 	"context"
 	"fmt"
 	"regexp"
+
+	"github.com/Eternity8c/FreeLib/internal/core/domain"
+	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
+	core_jwt "github.com/Eternity8c/FreeLib/internal/core/jwt"
+	users_postgres_repository "github.com/Eternity8c/FreeLib/internal/features/users/repository/postrgres"
 
 	"golang.org/x/crypto/bcrypt"
 )
