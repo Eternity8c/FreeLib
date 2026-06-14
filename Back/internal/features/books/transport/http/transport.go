@@ -205,7 +205,7 @@ func (h *BooksHTTPHandler) GetNewBooks(rw http.ResponseWriter, r *http.Request) 
 // @Tags		books
 // @Produce		json
 // @Param		id	query int true "ID книги"
-// @Success		200	{object} BookDTOResponce "Полная информация о книге"
+// @Success		200	{object} GetBookResponce "Полная информация о книге"
 // @Failure		400	{object} core_http_responce.ErrorResponce "BadRequest"
 // @Failure		404	{object} core_http_responce.ErrorResponce "Not Found"
 // @Failure		500	{object} core_http_responce.ErrorResponce "Internal server error"

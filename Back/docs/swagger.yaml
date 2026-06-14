@@ -63,6 +63,21 @@ definitions:
         example: 1
         type: integer
     type: object
+  internal_features_books_transport_http.GetBookResponce:
+    properties:
+      author:
+        example: F. Scott Fitzgerald
+        type: string
+      genre:
+        example: Fiction
+        type: string
+      id:
+        example: 1
+        type: integer
+      title:
+        example: The Great Gatsby
+        type: string
+    type: object
   internal_features_books_transport_http.UpdateBookRequest:
     properties:
       author:
@@ -195,7 +210,7 @@ paths:
         "200":
           description: Полная информация о книге
           schema:
-            $ref: '#/definitions/internal_features_books_transport_http.BookDTOResponce'
+            $ref: '#/definitions/internal_features_books_transport_http.GetBookResponce'
         "400":
           description: BadRequest
           schema:

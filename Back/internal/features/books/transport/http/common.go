@@ -25,7 +25,7 @@ func getLimitOffsetQueryParams(r *http.Request) (*int, *int, error) {
 }
 
 func getIDQueryParam(r *http.Request) (int, error) {
-	id, err := core_http_utils.GetIntQueryParam(r, "ID")
+	id, err := core_http_utils.GetIntQueryParam(r, "id")
 	if err != nil {
 		return domain.UninitializedID, fmt.Errorf("get `id` query param: %w", err)
 	}

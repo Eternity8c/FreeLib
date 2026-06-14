@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -74,6 +73,7 @@ func main() {
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
 		logger,
+		core_http_middleware.CORS(),
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
 		core_http_middleware.Trace(),
@@ -90,17 +90,4 @@ func main() {
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))
 	}
-}
-
-func withCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }

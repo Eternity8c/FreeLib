@@ -38,7 +38,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Полная информация о книге",
                         "schema": {
-                            "$ref": "#/definitions/internal_features_books_transport_http.BookDTOResponce"
+                            "$ref": "#/definitions/internal_features_books_transport_http.GetBookResponce"
                         }
                     },
                     "400": {
@@ -654,6 +654,27 @@ const docTemplate = `{
                 "user_id": {
                     "type": "integer",
                     "example": 1
+                }
+            }
+        },
+        "internal_features_books_transport_http.GetBookResponce": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "F. Scott Fitzgerald"
+                },
+                "genre": {
+                    "type": "string",
+                    "example": "Fiction"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The Great Gatsby"
                 }
             }
         },
