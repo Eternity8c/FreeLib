@@ -63,7 +63,7 @@ migrate-action:
 		exit 1; \
 	fi; \
 
-	@docker тcompose run --rm freelib-postgres-migrate \
+	@docker compose run --rm freelib-postgres-migrate \
 		-path ./migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@freelib-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		$(action)
