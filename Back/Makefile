@@ -9,17 +9,17 @@ start-docker:
 
 # Запуск контейнера
 env-up:
-	@docker-compose up freelib-postgres -d
+	@docker compose up freelib-postgres -d
 
 # Остановка контейнера
 env-down:
-	@docker-compose down freelib-postgres
+	@docker compose down freelib-postgres
 
 # Очистка окружения
 env-cleanup:
 	@read -p "Очистить все volume файлы окружения? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker-compose down && \
+		docker compose down && \
 		rm -rf out/pgdata && \
 		echo "Файлы окружения очищены"; \
 	else \
@@ -43,7 +43,7 @@ migrate-create:
 		exit 1; \
 	fi; \
 
-	docker-compose run --rm freelib-postgres-migrate \
+	docker compose run --rm freelib-postgres-migrate \
 		create \
 		-ext sql \
 		-dir /migrations \
@@ -63,13 +63,13 @@ migrate-action:
 		exit 1; \
 	fi; \
 
-	@docker-compose run --rm freelib-postgres-migrate \
+	@dockerтcompose run --rm freelib-postgres-migrate \
 		-path ./migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@freelib-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		$(action)
 
 freelib-deploy:
-	@docker-compose up -d --build freelib
+	@docker compose up -d --build freelib
 
 ps:
 	@docker compose ps
