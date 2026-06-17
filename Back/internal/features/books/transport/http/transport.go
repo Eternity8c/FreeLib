@@ -107,13 +107,9 @@ func (h *BooksHTTPHandler) CreateBook(rw http.ResponseWriter, r *http.Request) {
 	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
 
 	log.Debug("invoke CreateBook handler")
-	request := CreateBookRequest{
-		Title:  r.FormValue("title"),
-		Author: r.FormValue("author"),
-		Genre:  r.FormValue("genre"),
-	}
 
-	if err := core_http_request.ValidateStruct(&request); err != nil {
+	var request CreateBookRequest
+	if err := core_http_request.DecodeAndValidateFormData(r, &request); err != nil {
 		responceHandler.ErrorResponce(err, "failed to validate and decode HTTP request")
 		return
 	}
@@ -274,7 +270,7 @@ func (h *BooksHTTPHandler) FavoriteBook(rw http.ResponseWriter, r *http.Request)
 	}
 
 	var request FavoriteBookRequest
-	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+	if err := core_http_request.DecodeAndValidateJSONRequest(r, &request); err != nil {
 		responceHandler.ErrorResponce(err, "failed decode and validate request")
 		return
 	}
@@ -348,7 +344,7 @@ func (h *BooksHTTPHandler) UpdateBook(rw http.ResponseWriter, r *http.Request) {
 	log.Debug("invoke update book handler")
 
 	var request UpdateBookRequest
-	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+	if err := core_http_request.DecodeAndValidateJSONRequest(r, &request); err != nil {
 		responceHandler.ErrorResponce(err, "failed decode and validate request")
 		return
 	}

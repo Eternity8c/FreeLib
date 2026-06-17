@@ -32,9 +32,9 @@ func booksDTOFromDomains(books []domain.Book) []BookDTOResponce {
 }
 
 type CreateBookRequest struct {
-	Title  string `json:"title" example:"The Great Gatsby"`
-	Author string `json:"author" example:"F. Scott Fitzgerald"`
-	Genre  string `json:"genre" example:"Fiction"`
+	Title  string `form:"title" example:"The Great Gatsby"`
+	Author string `form:"author" example:"F. Scott Fitzgerald"`
+	Genre  string `form:"genre" example:"Fiction"`
 }
 
 type CreateBookResponce BookDTOResponce

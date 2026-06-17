@@ -46,7 +46,7 @@ func (s *BookService) CreateBook(
 	fileHeader *multipart.FileHeader,
 ) (domain.Book, error) {
 	if err := book.Validate(); err != nil {
-		return domain.Book{}, fmt.Errorf("validate book domain: %w", err)
+		return domain.Book{}, fmt.Errorf("validate book domain: %w: %w", err, core_errors.ErrInvalidArgumment)
 	}
 
 	extencion := filepath.Ext(fileHeader.Filename)
