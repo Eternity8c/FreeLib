@@ -4,7 +4,7 @@ export
 export PROJECT_ROOT=$(shell pwd)
 
 # Запуск докера
-start-docker:
+docker-start:
 	@sudo systemctl start docker
 
 # Запуск контейнера
