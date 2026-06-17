@@ -31,3 +31,14 @@ func DecodeAndValidateRequest(r *http.Request, dest any) error {
 
 	return nil
 }
+
+func ValidateStruct(dest any) error {
+	if err := requestValidator.Struct(dest); err != nil {
+		return fmt.Errorf(
+			"request validator: %v: %w",
+			err,
+			core_errors.ErrInvalidArgumment,
+		)
+	}
+	return nil
+}

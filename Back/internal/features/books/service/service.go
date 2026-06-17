@@ -3,17 +3,21 @@ package book_service
 import (
 	"context"
 	"fmt"
+	"mime/multipart"
+	"path/filepath"
+	"time"
 
 	"github.com/Eternity8c/FreeLib/internal/core/domain"
 	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
 )
 
 type BookService struct {
-	bookRepository BookRepository
+	bookRepository   BookRepository
+	bookS3Repository BookS3Repository
 }
 
 type BookRepository interface {
-	CreateBook(ctx context.Context, book domain.Book) (domain.Book, error)
+	CreateBook(ctx context.Context, book domain.Book, fileURL string) (domain.Book, error)
 	GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetNewBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetBook(ctx context.Context, id int) (domain.Book, error)
@@ -24,18 +28,40 @@ type BookRepository interface {
 	DeleteBook(ctx context.Context, bookID int) error
 }
 
-func NewBookService(bookRepository BookRepository) *BookService {
+type BookS3Repository interface {
+	SaveBookFile(ctx context.Context, file multipart.File, fileName string) (string, error)
+}
+
+func NewBookService(bookRepository BookRepository, bookS3Repository BookS3Repository) *BookService {
 	return &BookService{
-		bookRepository: bookRepository,
+		bookRepository:   bookRepository,
+		bookS3Repository: bookS3Repository,
 	}
 }
 
-func (s *BookService) CreateBook(ctx context.Context, book domain.Book) (domain.Book, error) {
+func (s *BookService) CreateBook(
+	ctx context.Context,
+	book domain.Book,
+	file multipart.File,
+	fileHeader *multipart.FileHeader,
+) (domain.Book, error) {
 	if err := book.Validate(); err != nil {
 		return domain.Book{}, fmt.Errorf("validate book domain: %w", err)
 	}
 
-	domainBook, err := s.bookRepository.CreateBook(ctx, book)
+	extencion := filepath.Ext(fileHeader.Filename)
+	if extencion != ".epub" {
+		return domain.Book{}, fmt.Errorf("failed extencion: %s: %w", extencion, core_errors.ErrInvalidArgumment)
+	}
+
+	fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), fileHeader.Filename)
+
+	fileURL, err := s.bookS3Repository.SaveBookFile(ctx, file, fileName)
+	if err != nil {
+		return domain.Book{}, fmt.Errorf("save book repository: %w", err)
+	}
+
+	domainBook, err := s.bookRepository.CreateBook(ctx, book, fileURL)
 	if err != nil {
 		return domain.Book{}, fmt.Errorf("create book: %w", err)
 	}

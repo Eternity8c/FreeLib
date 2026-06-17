@@ -12,6 +12,7 @@ type Book struct {
 	Author    string    `json:"author" db:"author"`
 	Genre     string    `json:"genre" db:"genre"`
 	CreatedAt time.Time `json:"created_at,omitempty" db:"created_at"`
+	S3_URL    string    `db:"s3_url"`
 }
 
 func NewBookUninitialized(title string, author string, genre string) Book {

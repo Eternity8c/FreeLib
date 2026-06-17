@@ -2,6 +2,7 @@ package books_transport_http
 
 import (
 	"context"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/Eternity8c/FreeLib/internal/core/domain"
@@ -17,7 +18,7 @@ type BooksHTTPHandler struct {
 }
 
 type BookServices interface {
-	CreateBook(ctx context.Context, book domain.Book) (domain.Book, error)
+	CreateBook(ctx context.Context, book domain.Book, file multipart.File, fileHeader *multipart.FileHeader) (domain.Book, error)
 	GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetNewBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetBook(ctx context.Context, id int) (domain.Book, error)
@@ -28,7 +29,9 @@ type BookServices interface {
 	DeleteBook(ctx context.Context, bookID int) error
 }
 
-func NewBookHTTPHandler(bookServices BookServices) *BooksHTTPHandler {
+func NewBookHTTPHandler(
+	bookServices BookServices,
+) *BooksHTTPHandler {
 	return &BooksHTTPHandler{
 		bookServices: bookServices,
 	}
@@ -104,14 +107,25 @@ func (h *BooksHTTPHandler) CreateBook(rw http.ResponseWriter, r *http.Request) {
 	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
 
 	log.Debug("invoke CreateBook handler")
+	request := CreateBookRequest{
+		Title:  r.FormValue("title"),
+		Author: r.FormValue("author"),
+		Genre:  r.FormValue("genre"),
+	}
 
-	var request CreateBookRequest
-	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+	if err := core_http_request.ValidateStruct(&request); err != nil {
 		responceHandler.ErrorResponce(err, "failed to validate and decode HTTP request")
 		return
 	}
 
-	bookDomain, err := h.bookServices.CreateBook(ctx, createBookDomainFromDTO(request))
+	file, fileHeader, err := r.FormFile("epub")
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed get file")
+		return
+	}
+	defer file.Close()
+
+	bookDomain, err := h.bookServices.CreateBook(ctx, createBookDomainFromDTO(request), file, fileHeader)
 	if err != nil {
 		responceHandler.ErrorResponce(err, "failed to create book")
 		return
