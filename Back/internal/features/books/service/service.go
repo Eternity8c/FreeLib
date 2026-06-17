@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Eternity8c/FreeLib/internal/core/domain"
@@ -17,19 +18,22 @@ type BookService struct {
 }
 
 type BookRepository interface {
-	CreateBook(ctx context.Context, book domain.Book, fileURL string) (domain.Book, error)
+	CreateBook(ctx context.Context, book domain.Book, fileURL string, fileHash string) (domain.Book, error)
 	GetBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetNewBooks(ctx context.Context, limit *int, offset *int) ([]domain.Book, error)
 	GetBook(ctx context.Context, id int) (domain.Book, error)
 	FavoriteBook(ctx context.Context, userID int, bookID int) (int, domain.Book, error)
 	GetFavoriteBooks(ctx context.Context, userID int) ([]domain.Book, error)
 	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
-	UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error)
+	UpdateBook(ctx context.Context, book domain.Book, fileURL string, fileHash string) (domain.Book, error)
 	DeleteBook(ctx context.Context, bookID int) error
+	GetFileHashFromBook(ctx context.Context, id int) (string, error)
+	GetS3URLFromBook(ctx context.Context, id int) (string, error)
 }
 
 type BookS3Repository interface {
 	SaveBookFile(ctx context.Context, file multipart.File, fileName string) (string, error)
+	DeleteBookFile(ctx context.Context, fileName string) error
 }
 
 func NewBookService(bookRepository BookRepository, bookS3Repository BookS3Repository) *BookService {
@@ -61,7 +65,12 @@ func (s *BookService) CreateBook(
 		return domain.Book{}, fmt.Errorf("save book repository: %w", err)
 	}
 
-	domainBook, err := s.bookRepository.CreateBook(ctx, book, fileURL)
+	fileHash, err := CalculateFileHash(fileHeader)
+	if err != nil {
+		return domain.Book{}, fmt.Errorf("calculate file hash: %w", err)
+	}
+
+	domainBook, err := s.bookRepository.CreateBook(ctx, book, fileURL, fileHash)
 	if err != nil {
 		return domain.Book{}, fmt.Errorf("create book: %w", err)
 	}
@@ -147,12 +156,38 @@ func (s *BookService) GetBooksByGenre(ctx context.Context, genre string) ([]doma
 	return bookDomains, nil
 }
 
-func (s *BookService) UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error) {
+func (s *BookService) UpdateBook(ctx context.Context, book domain.Book, file multipart.File, fileHeader *multipart.FileHeader) (domain.Book, error) {
 	if err := book.Validate(); err != nil {
 		return domain.Book{}, fmt.Errorf("validate book domain: %w", err)
 	}
 
-	bookDomain, err := s.bookRepository.UpdateBook(ctx, book)
+	extencion := filepath.Ext(fileHeader.Filename)
+	if extencion != ".epub" {
+		return domain.Book{}, fmt.Errorf("failed extencion: %s: %w", extencion, core_errors.ErrInvalidArgumment)
+	}
+
+	newfileHash, err := CalculateFileHash(fileHeader)
+	if err != nil {
+		return domain.Book{}, fmt.Errorf("calculate file hash: %w", err)
+	}
+
+	fileHashfromRepository, err := s.bookRepository.GetFileHashFromBook(ctx, book.ID)
+	if err != nil {
+		return domain.Book{}, fmt.Errorf("get fileHash from repository: %w", err)
+	}
+
+	if newfileHash == fileHashfromRepository {
+		return domain.Book{}, fmt.Errorf("file hash must be not equal to the file hash from repository")
+	}
+
+	fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), fileHeader.Filename)
+
+	fileURL, err := s.bookS3Repository.SaveBookFile(ctx, file, fileName)
+	if err != nil {
+		return domain.Book{}, fmt.Errorf("save book repository: %w", err)
+	}
+
+	bookDomain, err := s.bookRepository.UpdateBook(ctx, book, fileURL, newfileHash)
 	if err != nil {
 		return domain.Book{}, fmt.Errorf("update book: %w", err)
 	}
@@ -161,7 +196,19 @@ func (s *BookService) UpdateBook(ctx context.Context, book domain.Book) (domain.
 }
 
 func (s *BookService) DeleteBook(ctx context.Context, bookID int) error {
-	err := s.bookRepository.DeleteBook(ctx, bookID)
+	s3URL, err := s.bookRepository.GetS3URLFromBook(ctx, bookID)
+	if err != nil {
+		return fmt.Errorf("get filename from repository: %w", err)
+	}
+
+	fileName := strings.TrimPrefix(s3URL, "https://storage.yandexcloud.net/tes-freelib-server/")
+
+	err = s.bookS3Repository.DeleteBookFile(ctx, fileName)
+	if err != nil {
+		return fmt.Errorf("delete book from s3: %w", err)
+	}
+
+	err = s.bookRepository.DeleteBook(ctx, bookID)
 	if err != nil {
 		return fmt.Errorf("delete book from repository: %w", err)
 	}

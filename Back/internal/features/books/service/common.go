@@ -1,7 +1,11 @@
 package book_service
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"io"
+	"mime/multipart"
 
 	core_errors "github.com/Eternity8c/FreeLib/internal/core/errors"
 )
@@ -30,4 +34,22 @@ func validateID(id int) error {
 	}
 
 	return nil
+}
+
+func CalculateFileHash(fileHeader *multipart.FileHeader) (string, error) {
+	file, err := fileHeader.Open()
+	if err != nil {
+		return "", fmt.Errorf("file open: %w", err)
+	}
+	defer file.Close()
+
+	hasher := sha256.New()
+
+	if _, err := io.Copy(hasher, file); err != nil {
+		return "", fmt.Errorf("cope file: %w", err)
+	}
+
+	hashInBytes := hasher.Sum(nil)
+
+	return hex.EncodeToString(hashInBytes), nil
 }

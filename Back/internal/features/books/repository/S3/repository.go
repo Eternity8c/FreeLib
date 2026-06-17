@@ -39,3 +39,15 @@ func (r *BookS3Repository) SaveBookFile(ctx context.Context, file multipart.File
 
 	return fileURL, nil
 }
+
+func (r *BookS3Repository) DeleteBookFile(ctx context.Context, fileName string) error {
+	_, err := r.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(fileName),
+	})
+	if err != nil {
+		return fmt.Errorf("failed delete file to S3: %w", err)
+	}
+
+	return nil
+}

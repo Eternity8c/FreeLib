@@ -25,7 +25,7 @@ type BookServices interface {
 	FavoriteBook(ctx context.Context, userID int, bookID int) (int, domain.Book, error)
 	GetFavoriteBooks(ctx context.Context, userID int) ([]domain.Book, error)
 	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
-	UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error)
+	UpdateBook(ctx context.Context, book domain.Book, file multipart.File, fileHeader *multipart.FileHeader) (domain.Book, error)
 	DeleteBook(ctx context.Context, bookID int) error
 }
 
@@ -344,12 +344,19 @@ func (h *BooksHTTPHandler) UpdateBook(rw http.ResponseWriter, r *http.Request) {
 	log.Debug("invoke update book handler")
 
 	var request UpdateBookRequest
-	if err := core_http_request.DecodeAndValidateJSONRequest(r, &request); err != nil {
+	if err := core_http_request.DecodeAndValidateFormData(r, &request); err != nil {
 		responceHandler.ErrorResponce(err, "failed decode and validate request")
 		return
 	}
 
-	bookDomain, err := h.bookServices.UpdateBook(ctx, updateBookDomainFromDTO(request))
+	file, fileHeader, err := r.FormFile("epub")
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed get file")
+		return
+	}
+	defer file.Close()
+
+	bookDomain, err := h.bookServices.UpdateBook(ctx, updateBookDomainFromDTO(request), file, fileHeader)
 	if err != nil {
 		responceHandler.ErrorResponce(err, "failed update book from repository")
 		return
