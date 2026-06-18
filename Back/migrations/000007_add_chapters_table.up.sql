@@ -6,7 +6,7 @@ CREATE TABLE freelib.chapters (
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ,
 
-    FOREIGN KEY (book_id) REFERENCES freelib.books (book_id),
+    FOREIGN KEY (book_id) REFERENCES freelib.books (book_id) ON DELETE CASCADE,
 
     CONSTRAINT unique_book_chapter UNIQUE (book_id, chapters_number)
 );
