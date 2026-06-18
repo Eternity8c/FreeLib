@@ -3,6 +3,7 @@ package book_s3_repository
 import (
 	"context"
 	"fmt"
+	"io"
 	"mime/multipart"
 
 	core_yandex_cloud "github.com/Eternity8c/FreeLib/internal/core/repository/yandex_cloud"
@@ -50,4 +51,16 @@ func (r *BookS3Repository) DeleteBookFile(ctx context.Context, fileName string) 
 	}
 
 	return nil
+}
+
+func (r *BookS3Repository) GetBookFile(ctx context.Context, fileName string) (io.ReadCloser, error) {
+	s3file, err := r.client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(fileName),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get object from s3: %w", err)
+	}
+
+	return s3file.Body, nil
 }

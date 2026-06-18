@@ -3,9 +3,9 @@ package book_service
 import (
 	"context"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/Eternity8c/FreeLib/internal/core/domain"
@@ -34,6 +34,7 @@ type BookRepository interface {
 type BookS3Repository interface {
 	SaveBookFile(ctx context.Context, file multipart.File, fileName string) (string, error)
 	DeleteBookFile(ctx context.Context, fileName string) error
+	GetBookFile(ctx context.Context, fileName string) (io.ReadCloser, error)
 }
 
 func NewBookService(bookRepository BookRepository, bookS3Repository BookS3Repository) *BookService {
@@ -196,12 +197,10 @@ func (s *BookService) UpdateBook(ctx context.Context, book domain.Book, file mul
 }
 
 func (s *BookService) DeleteBook(ctx context.Context, bookID int) error {
-	s3URL, err := s.bookRepository.GetS3URLFromBook(ctx, bookID)
+	fileName, err := s.getFileNameFromS3(ctx, bookID)
 	if err != nil {
-		return fmt.Errorf("get filename from repository: %w", err)
+		return fmt.Errorf("get file name: %w", err)
 	}
-
-	fileName := strings.TrimPrefix(s3URL, "https://storage.yandexcloud.net/tes-freelib-server/")
 
 	err = s.bookS3Repository.DeleteBookFile(ctx, fileName)
 	if err != nil {
@@ -214,4 +213,18 @@ func (s *BookService) DeleteBook(ctx context.Context, bookID int) error {
 	}
 
 	return nil
+}
+
+func (s *BookService) GetFileBook(ctx context.Context, bookID int) (io.ReadCloser, string, error) {
+	fileName, err := s.getFileNameFromS3(ctx, bookID)
+	if err != nil {
+		return nil, "", fmt.Errorf("get file name: %w", err)
+	}
+
+	file, err := s.bookS3Repository.GetBookFile(ctx, fileName)
+	if err != nil {
+		return nil, "", fmt.Errorf("get book file: %w", err)
+	}
+
+	return file, fileName, nil
 }

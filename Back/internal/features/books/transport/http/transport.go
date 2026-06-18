@@ -2,6 +2,8 @@ package books_transport_http
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -11,6 +13,7 @@ import (
 	core_http_request "github.com/Eternity8c/FreeLib/internal/core/transport/http/request"
 	core_http_responce "github.com/Eternity8c/FreeLib/internal/core/transport/http/responce"
 	core_http_server "github.com/Eternity8c/FreeLib/internal/core/transport/http/server"
+	"go.uber.org/zap"
 )
 
 type BooksHTTPHandler struct {
@@ -27,6 +30,7 @@ type BookServices interface {
 	GetBooksByGenre(ctx context.Context, genre string) ([]domain.Book, error)
 	UpdateBook(ctx context.Context, book domain.Book, file multipart.File, fileHeader *multipart.FileHeader) (domain.Book, error)
 	DeleteBook(ctx context.Context, bookID int) error
+	GetFileBook(ctx context.Context, bookID int) (io.ReadCloser, string, error)
 }
 
 func NewBookHTTPHandler(
@@ -82,6 +86,11 @@ func (h *BooksHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodDelete,
 			Path:    "/book",
 			Handler: core_http_middleware.AdminOnly(h.DeleteBook),
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/book/file",
+			Handler: h.GetFileBook,
 		},
 	}
 }
@@ -400,4 +409,36 @@ func (h *BooksHTTPHandler) DeleteBook(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	responceHandler.NoContentResponce()
+}
+
+func (h *BooksHTTPHandler) GetFileBook(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log := core_logger.FromContext(ctx)
+	responceHandler := core_http_responce.NewHTTPResponceHandler(log, rw)
+
+	log.Debug("invoke get file book handler")
+
+	bookID, err := getIDQueryParam(r)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed get ID query param")
+		return
+	}
+
+	bookFile, fileName, err := h.bookServices.GetFileBook(ctx, bookID)
+	if err != nil {
+		responceHandler.ErrorResponce(err, "failed get book file from repository")
+		return
+	}
+	defer bookFile.Close()
+
+	rw.Header().Set("Content-Type", "application/epub+zip")
+
+	valueHeader := fmt.Sprintf(`attachment; filename="%s.epub"`, fileName)
+	rw.Header().Set("Content-Disposition", valueHeader)
+
+	rw.WriteHeader(http.StatusOK)
+	if _, err := io.Copy(rw, bookFile); err != nil {
+		log.Error("failed stream book file to responce", zap.Error(err))
+		return
+	}
 }
