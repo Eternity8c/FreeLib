@@ -43,17 +43,22 @@ func (b *Book) Validate() error {
 
 	authorLenght := len([]rune(b.Author))
 	if authorLenght < 3 {
-		return fmt.Errorf("len `author`: %d", titleLenght)
+		return fmt.Errorf("len `author`: %d", authorLenght)
+	}
+
+	genreLenght := len([]rune(b.Genre))
+	if genreLenght < 1 {
+		return fmt.Errorf("len `genre`: %d", genreLenght)
 	}
 
 	runes := []rune(b.Author)
 	if !unicode.IsUpper(runes[0]) {
-		return fmt.Errorf("the first letter author not upper: %c", runes[0])
+		return fmt.Errorf("first letter author not upper: %c", runes[0])
 	}
 
 	runes = []rune(b.Genre)
 	if !unicode.IsUpper(runes[0]) {
-		return fmt.Errorf("the first letter genre not upper: %c", runes[0])
+		return fmt.Errorf("first letter genre not upper: %c", runes[0])
 	}
 
 	return nil
