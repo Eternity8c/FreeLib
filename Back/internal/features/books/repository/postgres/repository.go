@@ -26,6 +26,8 @@ func NewBookRepository(pool core_postgres_pool.Pool) *BookRepositry {
 func (r *BookRepositry) CreateBook(
 	ctx context.Context,
 	book domain.Book,
+	fileURL string,
+	fileHash string,
 ) (domain.Book, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
@@ -66,8 +68,8 @@ func (r *BookRepositry) CreateBook(
 
 	err = tx.QueryRow(ctx, `
 	WITH inserted_book AS (
-		INSERT INTO freelib.books (title, author_id, genre_id, created_at)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO freelib.books (title, author_id, genre_id, created_at, s3_url, file_hash)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING book_id, title, author_id, genre_id, created_at
 	)
 	SELECT 
@@ -79,7 +81,7 @@ func (r *BookRepositry) CreateBook(
 	FROM inserted_book ib
 	JOIN freelib.author a ON ib.author_id = a.author_id
 	JOIN freelib.genre g ON ib.genre_id = g.genre_id;
-`, book.Title, authorID, genreID, book.CreatedAt,
+`, book.Title, authorID, genreID, book.CreatedAt, fileURL, fileHash,
 	).Scan(
 		&bookModel.ID,
 		&bookModel.Title,
@@ -287,7 +289,7 @@ func (r *BookRepositry) GetBooksByGenre(ctx context.Context, genre string) ([]do
 	return bookDomains, nil
 }
 
-func (r *BookRepositry) UpdateBook(ctx context.Context, book domain.Book) (domain.Book, error) {
+func (r *BookRepositry) UpdateBook(ctx context.Context, book domain.Book, fileURL string, fileHash string) (domain.Book, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -326,8 +328,8 @@ func (r *BookRepositry) UpdateBook(ctx context.Context, book domain.Book) (domai
 	err = tx.QueryRow(ctx, `
 	WITH inserted_book AS (
 		UPDATE freelib.books
-		SET title = $1, author_id = $2, genre_id = $3, created_at = $4
-		WHERE book_id = $5
+		SET title = $1, author_id = $2, genre_id = $3, created_at = $4, s3_url = $5, file_hash = $6
+		WHERE book_id = $7
 		RETURNING book_id, title, author_id, genre_id, created_at
 	)
 	SELECT 
@@ -339,7 +341,7 @@ func (r *BookRepositry) UpdateBook(ctx context.Context, book domain.Book) (domai
 	FROM inserted_book ib
 	JOIN freelib.author a ON ib.author_id = a.author_id
 	JOIN freelib.genre g ON ib.genre_id = g.genre_id;
-`, book.Title, authorID, genreID, book.CreatedAt, book.ID,
+`, book.Title, authorID, genreID, book.CreatedAt, fileURL, fileHash, book.ID,
 	).Scan(
 		&bookModel.ID,
 		&bookModel.Title,
@@ -390,6 +392,23 @@ func (r *BookRepositry) DeleteBook(ctx context.Context, bookID int) error {
 	}
 
 	tx.Commit(ctx)
+
+	return nil
+}
+
+func (r *BookRepositry) SaveBookURLS3(ctx context.Context, fileURL string) error {
+	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
+	defer cancel()
+
+	query := `
+	INSERT INTO freelib.books (s3_url)
+	VALUES ($1)
+	`
+
+	_, err := r.pool.Exec(ctx, query, fileURL)
+	if err != nil {
+		return fmt.Errorf("invalid insert: %w", err)
+	}
 
 	return nil
 }

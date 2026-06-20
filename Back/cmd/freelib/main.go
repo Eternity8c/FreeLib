@@ -9,8 +9,10 @@ import (
 
 	core_logger "github.com/Eternity8c/FreeLib/internal/core/logger"
 	core_postgres_pool "github.com/Eternity8c/FreeLib/internal/core/repository/postgres/pool"
+	core_yandex_cloud "github.com/Eternity8c/FreeLib/internal/core/repository/yandex_cloud"
 	core_http_middleware "github.com/Eternity8c/FreeLib/internal/core/transport/http/middleware"
 	core_http_server "github.com/Eternity8c/FreeLib/internal/core/transport/http/server"
+	book_s3_repository "github.com/Eternity8c/FreeLib/internal/features/books/repository/S3"
 	book_postgres_repository "github.com/Eternity8c/FreeLib/internal/features/books/repository/postgres"
 	book_service "github.com/Eternity8c/FreeLib/internal/features/books/service"
 	books_transport_http "github.com/Eternity8c/FreeLib/internal/features/books/transport/http"
@@ -56,6 +58,14 @@ func main() {
 	}
 	defer pool.Close()
 
+	client, err := core_yandex_cloud.NewClient(ctx, core_yandex_cloud.NewConfigMust())
+	if err != nil {
+		logger.Fatal(
+			"failed ti init client yandex cloud",
+			zap.Error(err),
+		)
+	}
+
 	logger.Debug("initializing feature", zap.String("feature", "users"))
 
 	usersRepository := users_postgres_repository.NewUsersRepository(pool)
@@ -65,7 +75,8 @@ func main() {
 	logger.Debug("initializing feature", zap.String("feature", "books"))
 
 	booksReposirory := book_postgres_repository.NewBookRepository(pool)
-	booksService := book_service.NewBookService(booksReposirory)
+	booksRepositoryS3 := book_s3_repository.NewBookS3Repository(client)
+	booksService := book_service.NewBookService(booksReposirory, booksRepositoryS3)
 	booksTransportHTTP := books_transport_http.NewBookHTTPHandler(booksService)
 
 	logger.Debug("initializing HTTP server")

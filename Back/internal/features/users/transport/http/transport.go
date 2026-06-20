@@ -60,7 +60,7 @@ func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
 	log.Debug("invoke CreateUser handler")
 
 	var request CreateUserRequest
-	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+	if err := core_http_request.DecodeAndValidateJSONRequest(r, &request); err != nil {
 		responceHandler.ErrorResponce(err, "failed to decode and validate HTTP request")
 		return
 	}
@@ -95,7 +95,7 @@ func (h *UsersHTTPHandler) AuthorizationUser(rw http.ResponseWriter, r *http.Req
 	log.Debug("invoke AuthorizationUser handler")
 
 	var request AuthorizationUserRequest
-	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
+	if err := core_http_request.DecodeAndValidateJSONRequest(r, &request); err != nil {
 		responceHandler.ErrorResponce(err, "failde decode and validate HTTP request")
 		return
 	}
