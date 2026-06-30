@@ -396,19 +396,27 @@ func (r *BookRepositry) DeleteBook(ctx context.Context, bookID int) error {
 	return nil
 }
 
-func (r *BookRepositry) SaveBookURLS3(ctx context.Context, fileURL string) error {
+func (r *BookRepositry) SaveChapters(ctx context.Context, bookID int, chapters []domain.Chapter) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	query := `
-	INSERT INTO freelib.books (s3_url)
-	VALUES ($1)
-	`
-
-	_, err := r.pool.Exec(ctx, query, fileURL)
+	tx, err := r.pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("invalid insert: %w", err)
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	for _, ch := range chapters {
+		_, err := tx.Exec(ctx, `
+			INSERT INTO freelib.chapters (book_id, chapters_number, title, content, created_at)
+			VALUES ($1, $2, $3, $4, NOW())
+			ON CONFLICT (book_id, chapters_number) DO UPDATE
+			SET title = EXCLUDED.title, content = EXCLUDED.content
+		`, bookID, ch.Number, ch.Title, ch.Content)
+		if err != nil {
+			return fmt.Errorf("insert chapter %d: %w", ch.Number, err)
+		}
 	}
 
-	return nil
+	return tx.Commit(ctx)
 }

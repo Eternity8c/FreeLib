@@ -15,6 +15,7 @@ import (
 type BookService struct {
 	bookRepository   BookRepository
 	bookS3Repository BookS3Repository
+	parseQueue       ParseQueue
 }
 
 type BookRepository interface {
@@ -29,6 +30,7 @@ type BookRepository interface {
 	DeleteBook(ctx context.Context, bookID int) error
 	GetFileHashFromBook(ctx context.Context, id int) (string, error)
 	GetS3URLFromBook(ctx context.Context, id int) (string, error)
+	SaveChapters(ctx context.Context, bookID int, chapters []domain.Chapter) error
 }
 
 type BookS3Repository interface {
@@ -37,10 +39,15 @@ type BookS3Repository interface {
 	GetBookFile(ctx context.Context, fileName string) (io.ReadCloser, error)
 }
 
-func NewBookService(bookRepository BookRepository, bookS3Repository BookS3Repository) *BookService {
+type ParseQueue interface {
+	Enqueue(bookID int)
+}
+
+func NewBookService(bookRepository BookRepository, bookS3Repository BookS3Repository, parseQueue ParseQueue) *BookService {
 	return &BookService{
 		bookRepository:   bookRepository,
 		bookS3Repository: bookS3Repository,
+		parseQueue:       parseQueue,
 	}
 }
 
@@ -75,6 +82,8 @@ func (s *BookService) CreateBook(
 	if err != nil {
 		return domain.Book{}, fmt.Errorf("create book: %w", err)
 	}
+
+	s.parseQueue.Enqueue(domainBook.ID)
 
 	return domainBook, nil
 }
