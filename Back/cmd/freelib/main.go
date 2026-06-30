@@ -16,6 +16,7 @@ import (
 	book_postgres_repository "github.com/Eternity8c/FreeLib/internal/features/books/repository/postgres"
 	book_service "github.com/Eternity8c/FreeLib/internal/features/books/service"
 	books_transport_http "github.com/Eternity8c/FreeLib/internal/features/books/transport/http"
+	book_worker "github.com/Eternity8c/FreeLib/internal/features/books/worker"
 	users_postgres_repository "github.com/Eternity8c/FreeLib/internal/features/users/repository/postrgres"
 	users_service "github.com/Eternity8c/FreeLib/internal/features/users/service"
 	users_transport_http "github.com/Eternity8c/FreeLib/internal/features/users/transport/http"
@@ -76,7 +77,11 @@ func main() {
 
 	booksReposirory := book_postgres_repository.NewBookRepository(pool)
 	booksRepositoryS3 := book_s3_repository.NewBookS3Repository(client)
-	booksService := book_service.NewBookService(booksReposirory, booksRepositoryS3)
+
+	epubWorker := book_worker.NewWorker(booksReposirory, booksRepositoryS3, logger.Logger)
+	go epubWorker.Run(ctx)
+
+	booksService := book_service.NewBookService(booksReposirory, booksRepositoryS3, epubWorker)
 	booksTransportHTTP := books_transport_http.NewBookHTTPHandler(booksService)
 
 	logger.Debug("initializing HTTP server")
